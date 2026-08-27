@@ -16,7 +16,7 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = 'v1.6 · 20/08/2026';
+var APP_VERSION = 'v1.7 · 27/08/2026';
 
 var MAX_ROWS = 20000;            // เพดานแถวต่อการดึง 1 ครั้ง กันหน้าเว็บอืด
 var SYNC_COOLDOWN_SEC = 120;     // กันกดปุ่ม Sync ถี่ฝั่งแอป (endpoint กันอีกชั้น 60 วิ)
@@ -67,6 +67,32 @@ var SOURCES = [{
     { key: 'raw', label: 'ข้อมูลดิบ', sheet: 'K-Merchant Raw Data',
       dateCol: 'PROCESS DATE', storeCol: 'รหัสสาขา BC',
       sum: ['TOTAL AMT', 'ค่าใช้จ่าย', 'NET CREDIT AMT'], exclude: [] },
+    { key: 'index', label: 'Index', sheet: 'index',
+      dateCol: '', storeCol: '', sum: [], exclude: [] }
+  ]
+}, {
+  key: 'bbloil',
+  label: 'BBL',
+  sublabel: 'OIL 1/4/5/6',
+  color: '#1E4B9E',                        // น้ำเงินแบงก์กรุงเทพ
+  fileLabel: 'EDC BBL OIL',
+  ssId: '1HgQ4OS-cDuyhuJkv1ZOC0xvkXBV5Qeg3wpx-NsVcZjs',
+  logSheet: 'WebApp_Log',
+  rawSheet: 'BBL eTax Invoices',           // 17 คอลัมน์ ตำแหน่ง MERCHANT/TAX/BRANCH เหมือน K-Bank แต่ BC อยู่ N + มี PDF/STATUS
+  indexSheet: 'index',                     // A=ลำดับ B=MERCHANT_ID C=BC D=DATABASE E=BRANCH_NAME F=หมายเหตุ
+  indexEditable: false,                    // ชีตของบัญชี wattanaoil — ดูอย่างเดียว แก้ที่ชีตต้นทาง
+  indexSchema: { order: true,
+    fields: ['MERCHANT_ID', 'รหัสสาขา BC', 'DATABASE', 'BRANCH_NAME', 'หมายเหตุ'] },
+  /* BBL: คอลัมน์ BC ในชีตดิบเป็นแค่ cache — ของจริงถูกคำนวณตอน rebuild query จาก index
+     จึงตรวจค่าว่างที่แท็บ query ตรงๆ แล้ว join กลับหา MERCHANT ผ่านเลข TAX ในชีตดิบ */
+  health: { mode: 'query' },
+  tabs: [
+    { key: 'query', label: 'รายการ (Query)', sheet: 'query',
+      dateCol: 'PROCESS DATE', storeCol: 'รหัสสาขา BC',
+      sum: ['TOTAL AMT', 'ค่าใช้จ่าย', 'NET CREDIT AMT'], exclude: [] },
+    { key: 'raw', label: 'ข้อมูลดิบ', sheet: 'BBL eTax Invoices',
+      dateCol: 'PROCESS_DATE', storeCol: 'รหัสสาขา BC',
+      sum: ['TOTAL_AMT', 'ค่าใช้จ่าย', 'NET_CREDIT_AMT'], exclude: [] },
     { key: 'index', label: 'Index', sheet: 'index',
       dateCol: '', storeCol: '', sum: [], exclude: [] }
   ]
@@ -175,11 +201,8 @@ function getData(sourceKey, tabKey, fromStr, toStr) {
   var latestTs = null;
   if (dateIdxRaw >= 0) {
     for (var lr = 1; lr < values.length; lr++) {
-      var lv = values[lr][dateIdxRaw];
-      if (lv instanceof Date) {
-        var lt = lv.getTime();
-        if (latestTs === null || lt > latestTs) latestTs = lt;
-      }
+      var lt = cellTs_(values[lr][dateIdxRaw]);
+      if (lt !== null && (latestTs === null || lt > latestTs)) latestTs = lt;
     }
   }
 
@@ -192,9 +215,8 @@ function getData(sourceKey, tabKey, fromStr, toStr) {
     }
     if (blank) continue;
     if (dateIdxRaw >= 0 && (from || to)) {
-      var dv = row[dateIdxRaw];
-      if (!(dv instanceof Date)) continue;
-      var ts = dv.getTime();
+      var ts = cellTs_(row[dateIdxRaw]);
+      if (ts === null) continue;
       if (from && ts < from) continue;
       if (to && ts > to) continue;
     }
@@ -243,21 +265,65 @@ function getBranches(sourceKey) {
 
 function checkHealth_(src) {
   try {
-    var sh = SpreadsheetApp.openById(src.ssId).getSheetByName(src.rawSheet);
-    if (!sh) return { ok: true, rows: 0, merchants: [] };
-    var values = sh.getDataRange().getValues();
+    var mode = (src.health && src.health.mode) || 'raw';
+    var ss = SpreadsheetApp.openById(src.ssId);
     var miss = {}, order = [], total = 0;
-    for (var r = 1; r < values.length; r++) {
-      var tax = String(values[r][5] == null ? '' : values[r][5]).trim();
-      if (!tax) continue;                                   // แถวว่าง/ไม่ใช่รายการ
-      var bc = String(values[r][12] == null ? '' : values[r][12]).trim();
-      if (bc) continue;                                     // จับคู่แล้ว
-      var mid = String(values[r][4] == null ? '' : values[r][4]).trim() || '(ไม่มี MERCHANT_ID)';
-      var bname = String(values[r][3] == null ? '' : values[r][3]).trim();
-      if (!miss[mid]) { miss[mid] = { id: mid, name: bname, count: 0 }; order.push(mid); }
-      miss[mid].count++;
+    var add = function (mid, bname, n) {
+      mid = mid || '(ไม่มี MERCHANT_ID)';
+      if (!miss[mid]) { miss[mid] = { id: mid, name: bname || '', count: 0 }; order.push(mid); }
+      miss[mid].count += n;
       if (bname && !miss[mid].name) miss[mid].name = bname;
-      total++;
+      total += n;
+    };
+
+    if (mode === 'query') {
+      /* BBL: ความจริงอยู่ที่ query (ถูก rebuild จาก index ตอน Sync)
+         query ไม่มีคอลัมน์ MERCHANT → join กลับผ่านเลข TAX ในชีตดิบ */
+      var qname = '';
+      for (var t = 0; t < src.tabs.length; t++) if (src.tabs[t].key === 'query') qname = src.tabs[t].sheet;
+      var qs = ss.getSheetByName(qname);
+      if (!qs) return { ok: true, rows: 0, merchants: [] };
+      var taxInfo = {};
+      var rs = ss.getSheetByName(src.rawSheet);
+      if (rs) {
+        var rv = rs.getDataRange().getValues();
+        for (var i = 1; i < rv.length; i++) {
+          var rtax = String(rv[i][5] == null ? '' : rv[i][5]).trim();
+          if (rtax && !taxInfo[rtax]) {
+            taxInfo[rtax] = {
+              id: String(rv[i][4] == null ? '' : rv[i][4]).trim(),
+              name: String(rv[i][3] == null ? '' : rv[i][3]).trim()
+            };
+          }
+        }
+      }
+      var qv = qs.getDataRange().getValues();
+      var missingTax = {};
+      for (var q = 1; q < qv.length; q++) {
+        var qtax = String(qv[q][1] == null ? '' : qv[q][1]).trim();
+        if (!qtax) continue;
+        var qbc = String(qv[q][7] == null ? '' : qv[q][7]).trim();
+        if (qbc) continue;
+        if (!missingTax[qtax]) missingTax[qtax] = 0;
+        missingTax[qtax]++;
+      }
+      Object.keys(missingTax).forEach(function (tax) {
+        var info = taxInfo[tax] || { id: '(ไม่พบในชีตดิบ)', name: 'TAX ' + tax };
+        add(info.id, info.name, missingTax[tax]);
+      });
+    } else {
+      /* K-Bank: ชีตดิบมี ARRAYFORMULA/ค่าจริง — สแกนตำแหน่งคอลัมน์ตรงๆ */
+      var sh = ss.getSheetByName(src.rawSheet);
+      if (!sh) return { ok: true, rows: 0, merchants: [] };
+      var values = sh.getDataRange().getValues();
+      for (var r = 1; r < values.length; r++) {
+        var tax = String(values[r][5] == null ? '' : values[r][5]).trim();
+        if (!tax) continue;                                 // แถวว่าง/ไม่ใช่รายการ
+        var bc = String(values[r][12] == null ? '' : values[r][12]).trim();
+        if (bc) continue;                                   // จับคู่แล้ว
+        add(String(values[r][4] == null ? '' : values[r][4]).trim(),
+            String(values[r][3] == null ? '' : values[r][3]).trim(), 1);
+      }
     }
     return { ok: total === 0, rows: total,
              merchants: order.map(function (k) { return miss[k]; }) };
@@ -464,6 +530,14 @@ function saveSettings(pin, obj) {
 }
 
 /* ====================== Helpers ====================== */
+
+/* คืน timestamp จากค่าเซลล์วันที่ — รองรับทั้ง Date จริง และข้อความ dd/MM/yyyy (เช่น query ของ BBL) */
+function cellTs_(v) {
+  if (v instanceof Date) return v.getTime();
+  var m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(String(v == null ? '' : v).trim());
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1]).getTime();
+  return null;
+}
 
 function parseYmd_(s, endOfDay, tz) {
   if (!s || !/^\d{4}-\d{2}-\d{2}$/.test(String(s))) return null;

@@ -448,7 +448,7 @@ function renderHealth(){
   var canEdit = !!(srcObj() && srcObj().indexEditable);
   h += '<span style="white-space:nowrap">'+
        (S.role==='admin' && canEdit ? '<button class="mini" id="hGoIx">✏️ ไปแก้ที่ Index</button> '
-         : (canEdit ? 'ให้ผู้ดูแลระบบจับคู่ในแท็บ Index ' : 'ต้องแก้การจับคู่ที่<b>ชีตต้นทาง</b> (แท็บ index) แล้วรอสคริปต์ของชีตนั้นเติมข้อมูล '))+
+         : (canEdit ? 'ให้ผู้ดูแลระบบจับคู่ในแท็บ Index ' : 'ต้องแก้การจับคู่ที่<b>ชีตต้นทาง</b> (แท็บ index) แล้วกด 🔄 Sync ให้ระบบประมวลผลใหม่ '))+
        '<button class="mini" id="hRecheck">🔁 ตรวจซ้ำ</button></span>';
   el.innerHTML = '<div class="notice err">'+h+'</div>';
   var g = $('hGoIx');
