@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<base target="_blank">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F4EF; --card:#FFFFFF; --ink:#20313B; --mut:#64758A;
+  --line:#E4E0D6; --teal:#0E6E5C; --tealsoft:#E4F1ED; --red:#B3261E;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Sarabun',sans-serif;background:var(--paper);color:var(--ink);font-size:14px}
+#app{display:flex;min-height:100vh}
+
+/* ---------- sidebar ---------- */
+aside{width:230px;flex:0 0 230px;background:var(--card);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{padding:18px 16px 14px;border-bottom:1px solid var(--line)}
+.brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.2px}
+.brand small{color:var(--mut)}
+.badge-ro{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11.5px;font-weight:600;
+  color:var(--teal);background:var(--tealsoft);border-radius:999px;padding:3px 10px}
+nav{padding:10px 8px;flex:1}
+.navlab{font-size:11px;color:var(--mut);letter-spacing:.6px;margin:10px 8px 4px}
+.navitem{display:block;width:100%;text-align:left;border:0;background:none;cursor:pointer;
+  font:inherit;font-weight:500;color:var(--ink);padding:10px 12px;border-radius:8px;margin:2px 0;
+  border-left:3px solid transparent}
+.navitem:hover{background:#F2F0E9}
+.navitem.on{background:var(--tealsoft);color:var(--teal);border-left-color:var(--teal);font-weight:600}
+.navdiv{border-top:1px solid var(--line);margin:10px 6px}
+.userbox{border-top:1px solid var(--line);padding:12px 16px;font-size:12px;color:var(--mut);word-break:break-all}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0;padding:18px 22px 30px}
+.pills{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.pill{font:inherit;cursor:pointer;border:1.5px solid var(--line);background:var(--card)}
+.pill.ic{width:96px;height:96px;padding:0;border-radius:22px;display:inline-flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.pill.ic.on{border-width:3px}
+.pill.ic.off{opacity:.45;filter:grayscale(.6)}
+.pfall{width:40px;height:40px;border-radius:10px;color:#fff;font-weight:700;
+  display:flex;align-items:center;justify-content:center;font-size:19px}
+.plabel{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1;
+  max-width:86px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.psub{font-size:9px;font-weight:500;color:var(--mut);line-height:1.2;max-width:88px;
+  text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pillsrow{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
+.pillsrow .pills{margin-bottom:0}
+.synctop{margin-left:auto;text-align:right;flex-shrink:0}
+.synctop #syncInfo{display:block;font-size:11.5px;color:var(--mut);margin-top:6px}
+
+.rangewrap{position:relative;display:inline-block}
+.rangebtn{font:inherit;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--line);
+  border-radius:8px;background:var(--card);color:var(--ink);white-space:nowrap}
+.rangebtn:hover{border-color:var(--teal)}
+.cal{position:absolute;top:calc(100% + 6px);left:0;z-index:40;width:276px;background:var(--card);
+  border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(32,49,59,.14);padding:12px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-head b{font-size:13.5px}
+.cal-nav{font:inherit;border:1px solid var(--line);background:#fff;border-radius:7px;
+  width:28px;height:28px;cursor:pointer;color:var(--mut)}
+.cal-nav:hover{color:var(--teal);border-color:var(--teal)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal-grid .wd{font-size:10.5px;color:var(--mut);padding:3px 0}
+.cal-grid .d{font-size:12.5px;padding:6px 0;border-radius:7px;cursor:pointer;border:1px solid transparent}
+.cal-grid .d:hover{background:#F2F0E9}
+.cal-grid .d.out{visibility:hidden}
+.cal-grid .d.today{border-color:var(--line)}
+.cal-grid .d.mid{background:var(--tealsoft);border-radius:0}
+.cal-grid .d.sel{background:var(--teal);color:#fff;font-weight:700}
+.cal-hint{font-size:11px;color:var(--mut);margin-top:8px;text-align:center}
+.tabsbar{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tabs{display:flex;gap:18px}
+.tab{font:inherit;font-size:14px;border:0;background:none;cursor:pointer;color:var(--mut);
+  padding:8px 2px;border-bottom:2.5px solid transparent;font-weight:500}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--teal)}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:6px}
+.seg button{font:inherit;font-size:12.5px;border:0;background:var(--card);color:var(--mut);padding:6px 12px;cursor:pointer}
+.seg button.on{background:var(--teal);color:#fff;font-weight:600}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar input[type=text],.toolbar input[type=date],.toolbar select{
+  font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.toolbar input[type=text]{width:190px}
+.toolbar select{max-width:230px}
+.chip{font:inherit;font-size:12px;cursor:pointer;border:1px solid var(--line);background:var(--card);
+  color:var(--mut);border-radius:999px;padding:5px 11px}
+.chip:hover{border-color:var(--teal);color:var(--teal)}
+.btn{font:inherit;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;padding:7px 14px;
+  border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.danger{color:var(--red);border-color:#E7C2BF}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.grow{flex:1}
+.mini{font:inherit;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;
+  border-radius:7px;padding:5px 10px}
+.mini.danger{color:var(--red);border-color:#E7C2BF}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.cardm{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--teal);
+  border-radius:10px;padding:10px 14px}
+.cardm .l{font-size:11.5px;color:var(--mut)}
+.cardm .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+
+.tablewrap{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:62vh}
+table.data{border-collapse:collapse;width:100%;font-size:13px}
+table.data thead th{position:sticky;top:0;background:#FBFAF6;border-bottom:1.5px solid var(--line);
+  text-align:left;padding:9px 10px;font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;z-index:1}
+table.data thead th.nosort{cursor:default}
+table.data tbody td{border-bottom:1px solid #F0EDE4;padding:7px 10px;max-width:260px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+table.data tbody tr:hover{background:#FAF8F2}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.miss{background:#FDEDEC;color:var(--red);font-weight:700}
+table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-top:2px solid var(--teal);
+  position:sticky;bottom:0;font-variant-numeric:tabular-nums}
+
+.pager{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--mut);font-size:12.5px;flex-wrap:wrap}
+.pager button{font:inherit;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:4px 10px;cursor:pointer}
+.notice{background:#FFF8E6;border:1px solid #EAD9A0;border-radius:10px;padding:14px 16px;margin-bottom:12px;color:#7A5A00}
+.notice.err{background:#FDEDEC;border-color:#F1B8B4;color:var(--red)}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+
+/* Index editor */
+.tedit{border-collapse:collapse;width:100%;font-size:12.5px}
+.tedit th{font-weight:600;color:var(--mut);text-align:left;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap;
+  position:sticky;top:0;background:#FBFAF6;z-index:1}
+.tedit td{padding:4px 5px;vertical-align:top;border-bottom:1px solid #F0EDE4}
+.tedit input{width:100%;min-width:96px;font:inherit;font-size:12.5px;padding:6px 8px;
+  border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
+.tedit td.rowno{color:var(--mut);font-variant-numeric:tabular-nums;padding-top:10px}
+
+/* ---------- login ---------- */
+#dataScreen{display:none}
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:72vh}
+.logincard{background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:32px 34px;width:320px;text-align:center}
+.pininp{font-size:22px;letter-spacing:10px;text-align:center;width:190px;padding:10px 6px;
+  border:1px solid var(--line);border-radius:10px;font-family:inherit}
+.ordiv{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:11.5px;margin:18px 0 12px}
+.ordiv::before,.ordiv::after{content:'';flex:1;border-top:1px solid var(--line)}
+
+/* ---------- settings ---------- */
+#settingsScreen{display:none}
+.set-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5;
+  background:var(--paper);padding:8px 0 12px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.sec h3{margin:0 0 10px;font-size:15px}
+.sec .hint{font-size:12px;color:var(--mut);margin:-6px 0 10px}
+.sin{font:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
+.frow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.frow label{font-size:12.5px;color:var(--mut);min-width:90px}
+.wide{flex:1;min-width:220px}
+
+#overlay{position:fixed;inset:0;background:rgba(246,244,239,.75);display:none;
+  align-items:center;justify-content:center;z-index:50;font-weight:600;color:var(--teal)}
+#overlay .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 26px;
+  display:flex;gap:12px;align-items:center}
+.spin{width:18px;height:18px;border:3px solid var(--tealsoft);border-top-color:var(--teal);
+  border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--red);color:#fff;
+  padding:10px 18px;border-radius:10px;display:none;z-index:60;max-width:80vw}
+#toast.ok{background:var(--teal)}
+
+/* ---------- print ---------- */
+#printArea{display:none}
+@media print{
+  body>#app,#overlay,#toast{display:none!important}
+  body{background:#fff}
+  #printArea{display:block;font-size:11px}
+  #printArea h2{margin:0 0 2px;font-size:16px}
+  #printArea .pm{color:#444;margin-bottom:10px;font-size:11px}
+  #printArea table{border-collapse:collapse;width:100%}
+  #printArea th,#printArea td{border:1px solid #999;padding:3px 5px;text-align:left}
+  #printArea td.num,#printArea th.num{text-align:right}
+  #printArea tfoot td{font-weight:bold;background:#eee}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside>
+    <div class="brand">
+      <h1>ระบบขึ้นเงินบัตรเครดิต</h1>
+      <small>Pattara Group · ฝ่ายบัญชี</small><br>
+      <span class="badge-ro" id="roleBadge">🔒 อ่านอย่างเดียว</span>
+      <div id="appVer" style="font-size:10.5px;color:var(--mut);margin-top:7px"></div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="userbox">ผู้ใช้งาน<br><b id="userEmail"></b>
+      <button class="mini" id="btnLogout" style="display:none;margin-top:8px;width:100%">⎋ ออกจากระบบ</button>
+    </div>
+  </aside>
+
+  <main>
+    <div id="loginScreen">
+      <div class="logincard">
+        <div style="font-size:34px">🔐</div>
+        <h2 style="margin:10px 0 4px;font-size:18px">ระบบขึ้นเงินบัตรเครดิต EDC</h2>
+        <div style="font-size:12.5px;color:var(--mut);margin-bottom:18px">เลือกวิธีเข้าใช้งาน</div>
+        <button class="btn pri" id="btnEnterUser" style="width:100%;padding:11px;font-size:14.5px">เข้าใช้งาน</button>
+        <div class="ordiv"><span>ผู้ดูแลระบบ</span></div>
+        <input type="password" id="pin" class="pininp" inputmode="numeric" maxlength="6"
+          placeholder="••••••" aria-label="PIN ผู้ดูแล 6 หลัก">
+        <div style="margin-top:10px"><button class="btn" id="btnEnterAdmin" style="width:100%">เข้าสู่ระบบด้วย PIN</button></div>
+      </div>
+    </div>
+
+    <div id="dataScreen">
+      <div class="pillsrow">
+        <div class="pills" id="pills"></div>
+        <div class="synctop">
+          <button class="btn" id="btnSync">🔄 Sync ข้อมูลล่าสุด</button>
+          <span id="syncInfo"></span>
+        </div>
+      </div>
+      <div class="tabsbar">
+        <div class="tabs" id="tabs"></div>
+        <div class="seg" id="seg">
+          <button id="segRows" class="on">รายการ</button>
+          <button id="segDaily">สรุปรายวัน</button>
+          <button id="segBranch">สรุปรายสาขา</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input type="text" id="q" placeholder="ค้นหาทุกฟิลด์…">
+        <select id="store"><option value="">ทุกสาขา</option></select>
+        <span class="rangewrap">
+          <button class="rangebtn" id="rangeBtn" type="button">📅 <span id="rangeLabel">ทั้งหมด</span></button>
+          <input type="hidden" id="from"><input type="hidden" id="to">
+          <div class="cal" id="cal" style="display:none"></div>
+        </span>
+        <button class="chip" data-r="today">วันนี้</button>
+        <button class="chip" data-r="tm">เดือนนี้</button>
+        <button class="chip" data-r="lm">เดือนที่แล้ว</button>
+        <button class="chip" data-r="all">ทั้งหมด</button>
+        <button class="btn pri" id="btnLoad">ดึงข้อมูล</button>
+      </div>
+
+      <div id="syncRow" style="display:flex;align-items:center;gap:10px;margin:2px 0 12px;flex-wrap:wrap">
+        <span class="grow"></span>
+        <button class="btn" id="btnIxEdit" style="display:none">✏️ แก้ไข Index</button>
+        <button class="btn pri" id="btnIxSave" style="display:none">💾 บันทึก Index</button>
+        <button class="btn" id="btnIxAdd" style="display:none">＋ เพิ่มแถว</button>
+        <button class="btn" id="btnIxCancel" style="display:none">ยกเลิก</button>
+        <button class="btn" id="btnCsv">CSV</button>
+        <button class="btn" id="btnXlsx">Excel</button>
+        <button class="btn" id="btnPrint">PDF</button>
+      </div>
+      <div id="healthBar"></div>
+      <div id="notice"></div>
+      <div class="cards" id="cards"></div>
+      <div class="tablewrap"><table class="data" id="tbl"></table></div>
+      <div class="pager" id="pager"></div>
+    </div>
+
+    <div id="settingsScreen"></div>
+  </main>
+</div>
+
+<div id="printArea"></div>
+<div id="overlay"><div class="box"><div class="spin"></div><span id="ovtext">กำลังดึงข้อมูล…</span></div></div>
+<div id="toast"></div>
+
+<script>var BOOTSTRAP = <?!= bootstrap ?>;</script>
+<script>
+var S = {
+  screen:'login', role:null, pin:'', src:'', tab:'', view:'rows',
+  headers:[], rows:[], truncated:false, latest:null, ms:0,
+  sortIdx:-1, sortDir:-1, page:1, per:100, ixEdit:false
+};
+var BRANCHES = [];          // [{v:'D2', label:'D2 · SD1767'}]
+var HEALTH = null;          // ผลตรวจค่าว่างล่าสุด {ok, rows, merchants}
+var LASTSYNC = BOOTSTRAP.lastSync || null;
+var IX = [];                // แถวใน Index editor
+var $ = function(id){ return document.getElementById(id); };
+
+/* ---------- helpers ---------- */
+function esc(s){
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function fmt(v){
+  if (typeof v === 'number'){
+    var isInt = Math.abs(v - Math.round(v)) < 1e-9;
+    return v.toLocaleString('en-US',{minimumFractionDigits:isInt?0:2, maximumFractionDigits:2});
+  }
+  return esc(String(v));
+}
+function fmtMoney(v){ return v.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function dateKey(s){
+  var m = /^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2}))?/.exec(String(s));
+  if (!m) return null;
+  return ((+m[3])*10000 + (+m[2])*100 + (+m[1])) * 10000 + (m[4]? (+m[4])*100 + (+m[5]) : 0);
+}
+function pad(n){ return (n<10?'0':'')+n; }
+function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function srcObj(){ return BOOTSTRAP.sources.filter(function(s){return s.key===S.src;})[0]; }
+function tabObj(){ var p=srcObj(); return p ? (p.tabs||[]).filter(function(t){return t.key===S.tab;})[0] : null; }
+function overlay(on,txt){ $('ovtext').textContent = txt||'กำลังดึงข้อมูล…'; $('overlay').style.display = on?'flex':'none'; }
+function toast(msg, ok){
+  var t=$('toast'); t.textContent=msg; t.className = ok?'ok':''; t.style.display='block';
+  clearTimeout(t._h); t._h=setTimeout(function(){t.style.display='none';},6000);
+}
+function setNotice(html,err){
+  $('notice').innerHTML = html ? '<div class="notice'+(err?' err':'')+'">'+html+'</div>' : '';
+}
+
+/* ---------- nav / pills / tabs ---------- */
+function renderNav(){
+  $('btnLogout').style.display = S.role ? '' : 'none';
+  $('appVer').textContent = BOOTSTRAP.appVersion || '';
+  $('roleBadge').textContent = S.role==='admin' ? '🛠 ผู้ดูแลระบบ' : '🔒 อ่านอย่างเดียว';
+  if (!S.role){ $('nav').innerHTML=''; return; }
+  var html = '<div class="navlab">เมนู</div>'+
+    '<button class="navitem'+(S.screen==='data'?' on':'')+'" id="navData">ขึ้นเงินบัตรเครดิต (EDC)</button>';
+  if (S.role === 'admin'){
+    html += '<div class="navdiv"></div>'+
+      '<button class="navitem'+(S.screen==='settings'?' on':'')+'" id="navSet">⚙️ ตั้งค่าระบบ</button>';
+  }
+  $('nav').innerHTML = html;
+  $('navData').onclick = function(){ showScreen('data'); };
+  if (S.role === 'admin') $('navSet').onclick = openSettings;
+}
+function renderPills(){
+  $('pills').innerHTML = BOOTSTRAP.sources.map(function(p){
+    var on = p.key===S.src;
+    var style = on ? 'style="border-color:'+esc(p.color)+';background:'+esc(p.color)+'14"' : '';
+    return '<button class="pill ic'+(on?' on':'')+'" '+style+' data-p="'+esc(p.key)+'" title="'+esc(p.label+' · '+p.sublabel)+'">'+
+      '<span class="pfall" style="background:'+esc(p.color)+'">'+esc(p.label.charAt(0))+'</span>'+
+      '<span class="plabel">'+esc(p.label)+'</span>'+
+      (p.sublabel?'<span class="psub">'+esc(p.sublabel)+'</span>':'')+'</button>';
+  }).join('');
+  Array.prototype.forEach.call($('pills').querySelectorAll('.pill'), function(b){
+    b.onclick = function(){ selectSrc(b.getAttribute('data-p')); };
+  });
+}
+function renderTabs(){
+  var p = srcObj();
+  $('tabs').innerHTML = (p ? p.tabs : []).map(function(t){
+    return '<button class="tab'+(t.key===S.tab?' on':'')+'" data-t="'+esc(t.key)+'">'+esc(t.label)+'</button>';
+  }).join('');
+  Array.prototype.forEach.call($('tabs').querySelectorAll('.tab'), function(b){
+    b.onclick = function(){
+      if (S.ixEdit && !confirm('ออกจากโหมดแก้ไข Index? การแก้ไขที่ยังไม่บันทึกจะหายไป')) return;
+      S.ixEdit=false; S.tab = b.getAttribute('data-t'); S.sortIdx=-1; S.page=1;
+      renderTabs(); updateSeg(); updateActionBtns(); loadData();
+    };
+  });
+  updateSeg();
+}
+function updateSeg(){
+  var t = tabObj();
+  $('seg').style.display = (t && t.dateCol) ? '' : 'none';
+  if (!(t && t.dateCol) && S.view!=='rows') setView('rows');
+}
+function setView(v){
+  S.view=v;
+  $('segRows').className = v==='rows'?'on':'';
+  $('segDaily').className = v==='daily'?'on':'';
+  $('segBranch').className = v==='branch'?'on':'';
+  renderAll();
+}
+
+/* ---------- selection ---------- */
+function selectSrc(k){
+  S.src = k; renderPills();
+  var p = srcObj();
+  S.tab = p.tabs.length ? p.tabs[0].key : '';
+  S.sortIdx=-1; S.page=1; S.ixEdit=false;
+  BRANCHES=[]; fillStores();
+  renderTabs(); updateActionBtns(); loadBranches(); loadData(); renderSyncInfo();
+}
+
+/* ---------- server calls ---------- */
+function loadBranches(){
+  var k = S.src;
+  google.script.run.withSuccessHandler(function(list){
+    if (S.src!==k) return;
+    BRANCHES = list||[]; fillStores();
+  }).withFailureHandler(function(){}).getBranches(k);
+}
+function fillStores(){
+  var cur = $('store').value;
+  $('store').innerHTML = '<option value="">ทุกสาขา</option>' +
+    BRANCHES.map(function(b){return '<option value="'+esc(b.v)+'">'+esc(b.label)+'</option>';}).join('');
+  var ok = BRANCHES.some(function(b){return b.v===cur;});
+  $('store').value = ok ? cur : '';
+}
+function branchLabel(v){
+  for (var i=0;i<BRANCHES.length;i++) if (BRANCHES[i].v===v) return BRANCHES[i].label;
+  return v;
+}
+function loadData(){
+  if (!S.src || !S.tab) return;
+  overlay(true);
+  google.script.run
+    .withSuccessHandler(function(res){
+      S.headers = res.headers; S.rows = res.rows;
+      S.truncated = res.truncated; S.latest = res.latest || null; S.ms = res.ms; S.page = 1;
+      HEALTH = res.health || null;
+      LASTSYNC = res.lastSync || LASTSYNC;
+      var t = tabObj();
+      var di = t ? S.headers.indexOf(t.dateCol) : -1;
+      if (S.sortIdx < 0 && di >= 0){ S.sortIdx = di; S.sortDir = -1; }
+      var msgs = [];
+      if (S.truncated) msgs.push('ข้อมูลเกิน '+BOOTSTRAP.maxRows.toLocaleString()+' แถว แสดงเฉพาะส่วนแรก — แนะนำให้ย่อช่วงวันที่ให้แคบลง');
+      if (!S.rows.length && S.latest && ($('from').value || $('to').value)){
+        msgs.push('ช่วงวันที่ที่เลือกไม่มีข้อมูล — แท็บนี้มีข้อมูลล่าสุดถึง <b>'+esc(S.latest.disp)+'</b> '+
+          '<button class="mini" id="jumpLatest" style="margin-left:6px">ไปเดือนล่าสุดที่มีข้อมูล</button>');
+      }
+      setNotice(msgs.join('<br>'));
+      var jb = $('jumpLatest');
+      if (jb) jb.onclick = function(){ jumpToMonth(S.latest.iso); };
+      overlay(false);
+      renderHealth(); renderSyncInfo(); renderAll();
+    })
+    .withFailureHandler(function(e){
+      overlay(false);
+      S.headers=[]; S.rows=[]; renderAll();
+      toast('ดึงข้อมูลไม่สำเร็จ: '+(e && e.message ? e.message : e));
+    })
+    .getData(S.src, S.tab, $('from').value, $('to').value);
+}
+
+/* ---------- 🔴 ตัวตรวจค่าว่างใน query + ล็อก export ---------- */
+function exportsBlocked(){ return !!(HEALTH && !HEALTH.ok); }
+function renderHealth(){
+  var el = $('healthBar');
+  if (!HEALTH || HEALTH.ok){ el.innerHTML=''; updateExportBtns(); return; }
+  var h;
+  if (HEALTH.rows === -1){
+    h = '<b>⛔ ตรวจสอบความครบถ้วนของข้อมูลไม่ได้</b> — '+esc(HEALTH.error||'')+
+        '<br>ปิดการ Export ไว้ก่อนเพื่อความปลอดภัย ';
+  } else {
+    var list = (HEALTH.merchants||[]).map(function(m){
+      return '<b>'+esc(m.id)+'</b>'+(m.name?' ('+esc(m.name)+')':'')+' ×'+m.count;
+    }).join(' · ');
+    h = '<b>⛔ ข้อมูลใน query ไม่ครบ '+HEALTH.rows.toLocaleString()+' แถว</b> — MERCHANT_ID ที่ยังไม่ได้จับคู่สาขาใน Index: '+list+
+        '<br>ปุ่ม Export (CSV / Excel / PDF) ถูกปิดทุกกรณี จนกว่าจะจับคู่ในแท็บ Index แล้ว Sync/ตรวจซ้ำจนข้อมูลครบ ';
+  }
+  var canEdit = !!(srcObj() && srcObj().indexEditable);
+  h += '<span style="white-space:nowrap">'+
+       (S.role==='admin' && canEdit ? '<button class="mini" id="hGoIx">✏️ ไปแก้ที่ Index</button> '
+         : (canEdit ? 'ให้ผู้ดูแลระบบจับคู่ในแท็บ Index ' : 'ต้องแก้การจับคู่ที่<b>ชีตต้นทาง</b> (แท็บ index) แล้วรอสคริปต์ของชีตนั้นเติมข้อมูล '))+
+       '<button class="mini" id="hRecheck">🔁 ตรวจซ้ำ</button></span>';
+  el.innerHTML = '<div class="notice err">'+h+'</div>';
+  var g = $('hGoIx');
+  if (g) g.onclick = function(){
+    S.tab='index'; S.page=1; renderTabs(); updateActionBtns(); loadData();
+    if (!S.ixEdit) startIxEdit();
+  };
+  $('hRecheck').onclick = doRecheck;
+  updateExportBtns();
+}
+function doRecheck(){
+  overlay(true,'กำลังตรวจความครบถ้วนของข้อมูล…');
+  google.script.run
+    .withSuccessHandler(function(hh){
+      overlay(false); HEALTH = hh;
+      if (hh && hh.ok){ toast('ข้อมูลใน query ครบแล้ว ✓ เปิดการ Export ให้แล้ว', true); }
+      else toast('ยังพบข้อมูลไม่ครบ '+(hh && hh.rows>0 ? hh.rows+' แถว' : ''));
+      renderHealth();
+    })
+    .withFailureHandler(function(e){ overlay(false); toast('ตรวจไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .recheckHealth(S.src);
+}
+function updateExportBtns(){
+  var blocked = exportsBlocked();
+  var hide = S.ixEdit;
+  ['btnCsv','btnXlsx','btnPrint'].forEach(function(id){
+    var b=$(id);
+    b.style.display = hide ? 'none' : '';
+    b.disabled = blocked;
+    b.title = blocked ? 'ปิดชั่วคราว — ข้อมูลใน query ยังไม่ครบ (ดูแถบแดงด้านบน)' : '';
+  });
+}
+
+/* ---------- filtering / summarising (client-side เหมือน OCR) ---------- */
+function filteredRows(){
+  var t = tabObj();
+  var si = (t && t.storeCol) ? S.headers.indexOf(t.storeCol) : -1;
+  var store = $('store').value;
+  var q = $('q').value.trim().toLowerCase();
+  return S.rows.filter(function(r){
+    if (store && si>=0 && String(r[si])!==store) return false;
+    if (q){
+      var hit=false;
+      for (var i=0;i<r.length;i++){
+        if (String(r[i]).toLowerCase().indexOf(q)>=0){ hit=true; break; }
+      }
+      if (!hit) return false;
+    }
+    return true;
+  });
+}
+function sumColsPresent(){
+  var t = tabObj();
+  return (t && t.sum ? t.sum : []).map(function(name){
+    return { name:name, idx:S.headers.indexOf(name) };
+  }).filter(function(c){ return c.idx>=0; });
+}
+function groupSummary(rows, mode){   // mode: 'daily' | 'branch'
+  var t = tabObj();
+  var gi = mode==='branch' ? (t ? S.headers.indexOf(t.storeCol) : -1)
+                           : (t ? S.headers.indexOf(t.dateCol) : -1);
+  var sums = sumColsPresent();
+  var map = {}, order = [];
+  rows.forEach(function(r){
+    var g0 = gi>=0 ? String(r[gi]) : '(ไม่ระบุ)';
+    var k = mode==='daily' ? g0.slice(0,10) : (g0||'(ว่าง)');
+    if (!map[k]){ map[k] = { k:k, n:0, s:sums.map(function(){return 0;}) }; order.push(k); }
+    var g = map[k]; g.n++;
+    sums.forEach(function(c,i){ var v=r[c.idx]; if (typeof v==='number') g.s[i]+=v; });
+  });
+  var list = order.map(function(k){ return map[k]; });
+  if (mode==='daily') list.sort(function(a,b){ return (dateKey(b.k)||0)-(dateKey(a.k)||0); });
+  else list.sort(function(a,b){ return a.k<b.k?-1:1; });
+  return { sums:sums, list:list };
+}
+
+/* ---------- render ---------- */
+function renderAll(){
+  if (S.ixEdit){ renderIxEditor(); return; }
+  renderCards(); renderTable();
+}
+function renderCards(){
+  var rows = filteredRows();
+  var sums = sumColsPresent();
+  var html = '<div class="cardm"><div class="l">จำนวนรายการ (ตามตัวกรอง)</div><div class="v">'+
+    rows.length.toLocaleString()+'</div></div>';
+  sums.slice(0,4).forEach(function(c){
+    var tot=0;
+    rows.forEach(function(r){ var v=r[c.idx]; if(typeof v==='number') tot+=v; });
+    html += '<div class="cardm"><div class="l">รวม '+esc(c.name)+'</div><div class="v">'+fmtMoney(tot)+'</div></div>';
+  });
+  $('cards').innerHTML = html;
+}
+function isNumCol(i){
+  for (var r=0;r<Math.min(S.rows.length,50);r++){
+    var v=S.rows[r][i];
+    if (v!=='' && v!=null){ return typeof v==='number'; }
+  }
+  return false;
+}
+function storeIdx_(){
+  var t = tabObj();
+  return (t && t.storeCol) ? S.headers.indexOf(t.storeCol) : -1;
+}
+function renderTable(){
+  var tbl = $('tbl');
+  if (!S.headers.length){
+    tbl.innerHTML='<tbody><tr><td class="empty">— ไม่มีข้อมูล —</td></tr></tbody>';
+    $('pager').innerHTML='';
+    return;
+  }
+
+  if (S.view==='daily' || S.view==='branch'){
+    var rows = filteredRows();
+    var ds = groupSummary(rows, S.view);
+    var gname = S.view==='daily' ? 'วันที่' : 'สาขา';
+    var head = '<thead><tr><th class="nosort">'+gname+'</th><th class="nosort num">จำนวนรายการ</th>'+
+      ds.sums.map(function(c){return '<th class="nosort num">'+esc(c.name)+'</th>';}).join('')+'</tr></thead>';
+    var body = '<tbody>'+ ds.list.map(function(g){
+      var label = S.view==='branch' ? branchLabel(g.k) : g.k;
+      return '<tr><td>'+esc(label)+'</td><td class="num">'+g.n.toLocaleString()+'</td>'+
+        g.s.map(function(v){return '<td class="num">'+fmtMoney(v)+'</td>';}).join('')+'</tr>';
+    }).join('') + '</tbody>';
+    var tot = ds.sums.map(function(c,i){
+      var s=0; ds.list.forEach(function(g){s+=g.s[i];}); return s;
+    });
+    var nAll=0; ds.list.forEach(function(g){nAll+=g.n;});
+    var foot = '<tfoot><tr><td>รวมทั้งหมด</td><td class="num">'+nAll.toLocaleString()+'</td>'+
+      tot.map(function(v){return '<td class="num">'+fmtMoney(v)+'</td>';}).join('')+'</tr></tfoot>';
+    tbl.innerHTML = head+body+foot;
+    $('pager').innerHTML = ds.list.length.toLocaleString()+(S.view==='daily'?' วัน':' สาขา')+
+      ' · จาก '+rows.length.toLocaleString()+' รายการ · โหลด '+S.rows.length.toLocaleString()+
+      ' แถว ('+(S.ms/1000).toFixed(1)+' วิ)'+(S.latest ? ' · ข้อมูลถึง '+esc(S.latest.disp) : '');
+    return;
+  }
+
+  var rows2 = filteredRows();
+  if (S.sortIdx>=0){
+    var i=S.sortIdx, dir=S.sortDir, numeric=isNumCol(i);
+    rows2 = rows2.slice().sort(function(a,b){
+      var x=a[i], y=b[i];
+      if (numeric){ x=(typeof x==='number')?x:-Infinity; y=(typeof y==='number')?y:-Infinity; return (x-y)*dir; }
+      var dx=dateKey(x), dy=dateKey(y);
+      if (dx!=null && dy!=null) return (dx-dy)*dir;
+      return String(x).localeCompare(String(y),'th')*dir;
+    });
+  }
+
+  var pages = Math.max(1, Math.ceil(rows2.length/S.per));
+  if (S.page>pages) S.page=pages;
+  var start=(S.page-1)*S.per, slice=rows2.slice(start,start+S.per);
+  var si = storeIdx_();
+
+  var head = '<thead><tr>'+S.headers.map(function(h,i){
+    var arrow = i===S.sortIdx ? (S.sortDir>0?' ▲':' ▼') : '';
+    return '<th class="'+(isNumCol(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+arrow+'</th>';
+  }).join('')+'</tr></thead>';
+
+  var body = '<tbody>'+ slice.map(function(r){
+    return '<tr>'+ r.map(function(v,i){
+      var isN = typeof v==='number';
+      var s = fmt(v);
+      if (i===si && String(v)===''){
+        return '<td class="miss" title="ยังไม่ได้จับคู่สาขาใน Index">— ว่าง —</td>';
+      }
+      return '<td class="'+(isN?'num':'')+'" title="'+s+'">'+s+'</td>';
+    }).join('')+'</tr>';
+  }).join('') + (slice.length?'':'<tr><td class="empty" colspan="'+S.headers.length+'">— ไม่พบรายการตามเงื่อนไข —</td></tr>') + '</tbody>';
+
+  tbl.innerHTML = head+body;
+  Array.prototype.forEach.call(tbl.querySelectorAll('thead th'), function(th){
+    th.onclick = function(){
+      var i=+th.getAttribute('data-i');
+      if (S.sortIdx===i) S.sortDir*=-1; else { S.sortIdx=i; S.sortDir=1; }
+      S.page=1; renderTable();
+    };
+  });
+
+  var pg = $('pager');
+  pg.innerHTML =
+    '<button id="pgPrev">‹ ก่อนหน้า</button>'+
+    '<span>หน้า '+S.page+' / '+pages+'</span>'+
+    '<button id="pgNext">ถัดไป ›</button>'+
+    '<span>· ตามตัวกรอง '+rows2.length.toLocaleString()+' รายการ · โหลด '+
+    S.rows.length.toLocaleString()+' แถว ('+(S.ms/1000).toFixed(1)+' วิ)'+
+    (S.latest ? ' · ข้อมูลถึง '+esc(S.latest.disp) : '')+'</span>';
+  $('pgPrev').onclick=function(){ if(S.page>1){S.page--;renderTable();} };
+  $('pgNext').onclick=function(){ if(S.page<pages){S.page++;renderTable();} };
+}
+
+/* ---------- export (ทุกทางผ่านด่านตรวจค่าว่าง) ---------- */
+function blockToastIfNeeded(){
+  if (!exportsBlocked()) return false;
+  toast('Export ถูกปิดชั่วคราว — ข้อมูลใน query ยังไม่ครบ ให้จับคู่สาขาในแท็บ Index แล้วตรวจซ้ำก่อน');
+  return true;
+}
+function exportDataset(){
+  if (S.view==='daily' || S.view==='branch'){
+    var ds = groupSummary(filteredRows(), S.view);
+    var gname = S.view==='daily' ? 'วันที่' : 'สาขา';
+    var headers = [gname,'จำนวนรายการ'].concat(ds.sums.map(function(c){return c.name;}));
+    var rows = ds.list.map(function(g){
+      var label = S.view==='branch' ? branchLabel(g.k) : g.k;
+      return [label, g.n].concat(g.s.map(function(v){return Math.round(v*100)/100;}));
+    });
+    var tot=['รวมทั้งหมด', ds.list.reduce(function(a,g){return a+g.n;},0)]
+      .concat(ds.sums.map(function(c,i){
+        return Math.round(ds.list.reduce(function(a,g){return a+g.s[i];},0)*100)/100;
+      }));
+    rows.push(tot);
+    return { headers:headers, rows:rows };
+  }
+  return { headers:S.headers.slice(), rows:filteredRows() };
+}
+function ddmmyyyy(iso){
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||''));
+  return m ? (m[3]+'-'+m[2]+'-'+m[1]) : '';
+}
+function baseFileName(){
+  var p = srcObj();
+  var label = (p && p.fileLabel) || '';
+  var kind = S.tab==='raw' ? 'ข้อมูลดิบ' : (S.tab==='index' ? 'Index' : 'ขึ้นเงิน');
+  var f = $('from').value, to = $('to').value, range;
+  if (S.tab==='index') range = '';
+  else if (f && to) range = (f === to) ? ddmmyyyy(f) : (ddmmyyyy(f)+' ถึง '+ddmmyyyy(to));
+  else if (f)  range = 'ตั้งแต่ '+ddmmyyyy(f);
+  else if (to) range = 'ถึง '+ddmmyyyy(to);
+  else         range = 'ทั้งหมด';
+  var name = (label+' '+kind+' '+range).replace(/\s+$/,'');
+  if (S.view === 'daily') name += ' (สรุปรายวัน)';
+  else if (S.view === 'branch') name += ' (สรุปรายสาขา)';
+  return name;
+}
+function fileName(ext){ return baseFileName()+'.'+ext; }
+function download(blob, name){
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},2000);
+}
+function exportCsv(){
+  if (blockToastIfNeeded()) return;
+  var d=exportDataset();
+  var lines=[d.headers].concat(d.rows).map(function(r){
+    return r.map(function(v){
+      var s=String(v==null?'':v);
+      return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+    }).join(',');
+  });
+  download(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}), fileName('csv'));
+}
+function xlsxTabName(n){
+  // ข้อจำกัดชื่อแท็บ Excel: ห้าม [ ] * ? / \ : และยาวได้ไม่เกิน 31 ตัว
+  n = String(n||'').replace(/[\[\]\*\?\/\\:]/g,' ').replace(/\s+/g,' ').trim().slice(0,31);
+  return n || 'data';
+}
+function exportXlsx(){
+  if (blockToastIfNeeded()) return;
+  var go=function(){
+    var d=exportDataset();
+    var ws=XLSX.utils.aoa_to_sheet([d.headers].concat(d.rows));
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, xlsxTabName(tabObj() && tabObj().sheet));
+    XLSX.writeFile(wb, fileName('xlsx'));
+  };
+  if (window.XLSX){ go(); return; }
+  overlay(true,'กำลังโหลดตัวสร้างไฟล์ Excel…');
+  var s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=function(){ overlay(false); go(); };
+  s.onerror=function(){ overlay(false); toast('โหลดไลบรารี Excel ไม่สำเร็จ — ใช้ปุ่ม CSV แทนได้'); };
+  document.head.appendChild(s);
+}
+function doPrint(){
+  if (blockToastIfNeeded()) return;
+  var d=exportDataset();
+  var t=tabObj();
+  var meta=[
+    srcObj()?srcObj().label+' · '+srcObj().sublabel:'',
+    (S.view==='daily'?'สรุปรายวัน':(S.view==='branch'?'สรุปรายสาขา':(t?t.label:''))),
+    'ช่วง '+fmtRangeLabel($('from').value, $('to').value),
+    $('store').value?('สาขา: '+$('store').value):'',
+    $('q').value?('ค้นหา: "'+$('q').value+'"'):'',
+    'พิมพ์เมื่อ '+new Date().toLocaleString('th-TH')
+  ].filter(Boolean).join(' · ');
+  var numCols = d.headers.map(function(h,i){
+    for (var r=0;r<Math.min(d.rows.length,50);r++){
+      var v=d.rows[r][i]; if(v!==''&&v!=null) return typeof v==='number';
+    }
+    return false;
+  });
+  var html='<h2>ระบบขึ้นเงินบัตรเครดิต EDC</h2><div class="pm">'+esc(meta)+'</div>'+
+    '<table><thead><tr>'+d.headers.map(function(h,i){
+      return '<th class="'+(numCols[i]?'num':'')+'">'+esc(h)+'</th>';
+    }).join('')+'</tr></thead><tbody>'+
+    d.rows.map(function(r){
+      return '<tr>'+r.map(function(v,i){
+        return '<td class="'+(numCols[i]?'num':'')+'">'+fmt(v)+'</td>';
+      }).join('')+'</tr>';
+    }).join('')+'</tbody></table>';
+  $('printArea').innerHTML=html;
+  var prevTitle = document.title;
+  document.title = baseFileName();
+  window.print();
+  setTimeout(function(){ document.title = prevTitle; }, 1500);
+}
+
+/* ---------- Sync (ทำงานทันทีเมื่อกด — ดึงเมลย้อนหลัง 7 วัน) ---------- */
+function renderSyncInfo(){
+  var i = LASTSYNC;
+  $('syncInfo').textContent = i ? ('Sync ล่าสุด '+(i.date?i.date+' ':'')+i.at+' · เพิ่ม '+i.inserted+' / ซ้ำ '+i.dup) : '';
+}
+function startSyncFlow(){
+  var k = S.src;
+  $('btnSync').disabled = true;
+  overlay(true,'กำลัง Sync — ดึงรายงาน K-Merchant ย้อนหลัง 7 วัน…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      overlay(false); $('btnSync').disabled=false;
+      if (res && res.ok){
+        var st = res.stats||{};
+        var dup = (st.skipDupTax||0)+(st.skipDupEmail||0);
+        toast('Sync สำเร็จ ✓ เพิ่มใหม่ '+(st.inserted||0)+' รายการ · ข้ามรายการซ้ำ '+dup, true);
+        LASTSYNC = res.lastSync || LASTSYNC;
+        renderSyncInfo();
+        if (S.src===k) loadData();
+      } else if (res && res.reason==='cooldown'){
+        toast('เพิ่ง Sync ไปเมื่อครู่ — รออีก '+(res.waitSec||0)+' วินาที');
+      } else {
+        toast((res && res.message) || 'สั่ง Sync ไม่สำเร็จ');
+      }
+    })
+    .withFailureHandler(function(e){
+      overlay(false); $('btnSync').disabled=false;
+      toast('สั่ง Sync ไม่สำเร็จ: '+(e&&e.message?e.message:e));
+    })
+    .startSync(k);
+}
+
+/* ---------- Index editor (จุดเขียนจุดเดียว — admin) ---------- */
+function updateActionBtns(){
+  var p = srcObj();
+  var adm = S.role==='admin' && S.tab==='index' && !!(p && p.indexEditable);
+  $('btnIxEdit').style.display = (adm && !S.ixEdit) ? '' : 'none';
+  $('btnIxSave').style.display = (adm && S.ixEdit) ? '' : 'none';
+  $('btnIxAdd').style.display = (adm && S.ixEdit) ? '' : 'none';
+  $('btnIxCancel').style.display = (adm && S.ixEdit) ? '' : 'none';
+  updateExportBtns();
+}
+function startIxEdit(){
+  overlay(true,'กำลังโหลด Index…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      overlay(false);
+      IX = (res.rows||[]).map(function(r){ return r.slice(); });
+      S.ixEdit = true; updateActionBtns(); renderIxEditor();
+    })
+    .withFailureHandler(function(e){ overlay(false); toast('โหลด Index ไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .getIndexRows(S.src);
+}
+function renderIxEditor(){
+  $('cards').innerHTML='';
+  setNotice('⚠️ Index คือตัวจับคู่ MERCHANT_ID → รหัสสาขา BC — บันทึกแล้ว<b>มีผลย้อนหลังกับข้อมูลทั้งระบบทันที</b> '+
+    '(คอลัมน์รหัสสาขาในชีตคำนวณจากตารางนี้) ระบบเก็บประวัติการแก้ไขทุกครั้ง');
+  var IXF = (srcObj() && srcObj().indexFields) || [];
+  var h = '<thead><tr><th style="width:44px">#</th>'+
+    IXF.map(function(f,c){ return '<th>'+esc(f)+(c<2?' *':'')+'</th>'; }).join('')+
+    '<th style="width:56px"></th></tr></thead><tbody>';
+  IX.forEach(function(r,i){
+    h += '<tr><td class="rowno">'+(i+1)+'</td>'+
+      IXF.map(function(f,c){
+        return '<td><input data-i="'+i+'" data-c="'+c+'" value="'+esc(r[c]||'')+'"></td>';
+      }).join('')+
+      '<td><button class="mini danger" data-del="'+i+'">ลบ</button></td></tr>';
+  });
+  h += '</tbody>';
+  var tbl = $('tbl');
+  tbl.className = 'tedit';
+  tbl.innerHTML = h;
+  $('pager').innerHTML = IX.length.toLocaleString()+' รายการ · แก้ไขเสร็จแล้วกด 💾 บันทึก Index';
+  Array.prototype.forEach.call(tbl.querySelectorAll('input[data-i]'), function(inp){
+    inp.oninput = function(){ IX[+inp.getAttribute('data-i')][+inp.getAttribute('data-c')] = inp.value.trim(); };
+  });
+  Array.prototype.forEach.call(tbl.querySelectorAll('[data-del]'), function(b){
+    b.onclick = function(){
+      var i=+b.getAttribute('data-del');
+      if (!confirm('ลบแถว MERCHANT_ID: '+(IX[i][0]||'(ว่าง)')+' ?')) return;
+      IX.splice(i,1); renderIxEditor();
+    };
+  });
+}
+function stopIxEdit(reload){
+  S.ixEdit=false; IX=[];
+  $('tbl').className='data';
+  setNotice('');
+  updateActionBtns();
+  if (reload) loadData(); else renderAll();
+}
+function saveIx(){
+  if (!confirm('ยืนยันบันทึก Index '+IX.length+' แถว?\nการแก้ไขมีผลย้อนหลังกับรหัสสาขาทั้งระบบทันที')) return;
+  overlay(true,'กำลังบันทึก Index…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      overlay(false);
+      toast('บันทึก Index สำเร็จ ✓ ('+res.count+' แถว)', true);
+      HEALTH = res.health || HEALTH;
+      renderHealth();
+      BRANCHES=[]; loadBranches();
+      stopIxEdit(true);
+    })
+    .withFailureHandler(function(e){ overlay(false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveIndexRows(S.pin, S.src, IX);
+}
+
+/* ---------- ปฏิทินเลือกช่วง (อันเดียว: จิ้มวันเริ่ม → จิ้มวันสิ้นสุด) ---------- */
+var CAL = { open:false, y:0, m:0, pickFrom:'', pickTo:'' };   // m = 0-11
+var TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+function calGrid(y, m){            // คืน cell 42 ช่อง (6 สัปดาห์) ของเดือนนั้น
+  var first = new Date(y, m, 1);
+  var start = first.getDay();      // 0=อาทิตย์
+  var days = new Date(y, m+1, 0).getDate();
+  var cells = [];
+  for (var i=0;i<42;i++){
+    var d = i - start + 1;
+    if (d < 1 || d > days) cells.push({ d:'', ymd:'', out:true });
+    else cells.push({ d:d, ymd: y+'-'+pad(m+1)+'-'+pad(d), out:false });
+  }
+  return cells;
+}
+function pickRange(cur, ymd){      // ตรรกะจิ้ม 2 ครั้ง: เริ่ม → สิ้นสุด (จิ้มก่อนวันเริ่ม = สลับให้)
+  if (!cur.from || (cur.from && cur.to)) return { from: ymd, to: '', done: false };
+  if (ymd < cur.from) return { from: ymd, to: cur.from, done: true };
+  return { from: cur.from, to: ymd, done: true };
+}
+function fmtRangeLabel(f, t){
+  var d = function(iso){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m? m[3]+'/'+m[2]+'/'+m[1] : ''; };
+  if (f && t) return f===t ? d(f) : d(f)+' – '+d(t);
+  if (f) return 'ตั้งแต่ '+d(f);
+  if (t) return 'ถึง '+d(t);
+  return 'ทั้งหมด';
+}
+function updateRangeLabel(){ $('rangeLabel').textContent = fmtRangeLabel($('from').value, $('to').value); }
+
+function calOpen(){
+  CAL.open = true;
+  CAL.pickFrom = $('from').value; CAL.pickTo = $('to').value;
+  var base = CAL.pickFrom || ymd(new Date());
+  CAL.y = +base.slice(0,4); CAL.m = +base.slice(5,7) - 1;
+  calRender();
+  $('cal').style.display = '';
+}
+function calClose(){ CAL.open = false; $('cal').style.display = 'none'; }
+function calRender(){
+  var today = ymd(new Date());
+  var f = CAL.pickFrom, t = CAL.pickTo;
+  var h = '<div class="cal-head">'
+    +'<button class="cal-nav" id="calPrev" type="button">‹</button>'
+    +'<b>'+TH_MONTHS[CAL.m]+' '+CAL.y+'</b>'
+    +'<button class="cal-nav" id="calNext" type="button">›</button></div>'
+    +'<div class="cal-grid">'
+    +['อา','จ','อ','พ','พฤ','ศ','ส'].map(function(w){return '<span class="wd">'+w+'</span>';}).join('');
+  calGrid(CAL.y, CAL.m).forEach(function(c){
+    if (c.out){ h += '<span class="d out"></span>'; return; }
+    var cls = 'd';
+    if (c.ymd === today) cls += ' today';
+    if (c.ymd === f || c.ymd === t) cls += ' sel';
+    else if (f && t && c.ymd > f && c.ymd < t) cls += ' mid';
+    h += '<span class="'+cls+'" data-ymd="'+c.ymd+'">'+c.d+'</span>';
+  });
+  h += '</div><div class="cal-hint">'+(f && !t ? 'เริ่ม '+fmtRangeLabel(f,'').replace('ตั้งแต่ ','')+' — จิ้มวันสิ้นสุด' : 'จิ้มวันเริ่มต้น แล้วจิ้มวันสิ้นสุด')+'</div>';
+  var el = $('cal');
+  el.innerHTML = h;
+  $('calPrev').onclick = function(e){ e.stopPropagation(); CAL.m--; if (CAL.m<0){CAL.m=11;CAL.y--;} calRender(); };
+  $('calNext').onclick = function(e){ e.stopPropagation(); CAL.m++; if (CAL.m>11){CAL.m=0;CAL.y++;} calRender(); };
+  Array.prototype.forEach.call(el.querySelectorAll('.d[data-ymd]'), function(cell){
+    cell.onclick = function(e){
+      e.stopPropagation();
+      var r = pickRange({ from: CAL.pickFrom, to: CAL.pickTo }, cell.getAttribute('data-ymd'));
+      CAL.pickFrom = r.from; CAL.pickTo = r.to;
+      if (r.done){
+        $('from').value = r.from; $('to').value = r.to;
+        updateRangeLabel(); calClose(); loadData();
+      } else calRender();
+    };
+  });
+}
+
+/* ---------- quick ranges ---------- */
+function jumpToMonth(iso){
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||''));
+  if (!m) return;
+  var y = +m[1], mo = +m[2];
+  $('from').value = y+'-'+pad(mo)+'-01';
+  $('to').value = ymd(new Date(y, mo, 0));
+  updateRangeLabel();
+  loadData();
+}
+function setRange(code){
+  var now=new Date();
+  if (code==='today'){ $('from').value=ymd(now); $('to').value=ymd(now); }
+  else if (code==='tm'){ $('from').value=ymd(new Date(now.getFullYear(),now.getMonth(),1)); $('to').value=ymd(now); }
+  else if (code==='lm'){
+    $('from').value=ymd(new Date(now.getFullYear(),now.getMonth()-1,1));
+    $('to').value=ymd(new Date(now.getFullYear(),now.getMonth(),0));
+  }
+  else if (code==='all'){ $('from').value=''; $('to').value=''; }
+  updateRangeLabel();
+  loadData();
+}
+
+/* ---------- settings (admin) ---------- */
+function showScreen(sc){
+  S.screen = sc;
+  $('loginScreen').style.display = sc==='login' ? 'flex' : 'none';
+  $('dataScreen').style.display = sc==='data' ? 'block' : 'none';
+  $('settingsScreen').style.display = sc==='settings' ? 'block' : 'none';
+  renderNav();
+}
+function openSettings(){
+  overlay(true,'กำลังโหลดการตั้งค่า…');
+  google.script.run
+    .withSuccessHandler(function(cfg){
+      overlay(false);
+      renderSettings(cfg);
+      showScreen('settings');
+    })
+    .withFailureHandler(function(e){ overlay(false); toast(e && e.message ? e.message : e); })
+    .getSettings(S.pin);
+}
+function renderSettings(cfg){
+  var h = '<div class="set-actions">'+
+    '<button class="btn pri" id="btnSetSave">💾 บันทึกการตั้งค่า</button>'+
+    '<button class="btn" id="btnSetBack">กลับโดยไม่บันทึก</button>'+
+    '<span style="font-size:12px;color:var(--mut)">ค่าเก็บใน Script Properties — ไม่แตะชีตข้อมูล มีผลทันทีหลังบันทึก</span>'+
+    '</div>';
+  (cfg.sources||[]).forEach(function(sc){
+    var p = BOOTSTRAP.sources.filter(function(x){return x.key===sc.key;})[0];
+    var dot = p ? '<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+esc(p.color)+';margin-right:6px"></span>' : '';
+    h += '<div class="sec"><h3>'+dot+'🔄 Sync — '+esc(sc.label+' · '+sc.sublabel)+'</h3>'+
+      '<div class="hint">จากไฟล์ SyncEndpoint ในโปรเจกต์สคริปต์ของชีตนั้น (Deploy เป็น Web app แบบ Anyone) — ใส่ครบทั้งคู่ ปุ่ม 🔄 Sync ของชิปนี้จึงทำงาน</div>'+
+      '<div class="frow"><label>Sync URL</label><input class="sin wide" id="setUrl_'+esc(sc.key)+'" value="'+esc(sc.syncUrl||'')+'" placeholder="https://script.google.com/macros/s/…/exec"></div>'+
+      '<div class="frow"><label>Sync Token</label><input class="sin wide" id="setToken_'+esc(sc.key)+'" value="'+esc(sc.syncToken||'')+'"></div></div>';
+  });
+  h += '<div class="sec"><h3>🔑 ความปลอดภัย</h3>'+
+    '<div class="frow"><label>เปลี่ยน PIN</label><input class="sin" id="setPin" type="password" inputmode="numeric" maxlength="6" placeholder="ตัวเลข 6 หลัก">'+
+    '<span style="font-size:11.5px;color:var(--mut)">เว้นว่าง = ไม่เปลี่ยน — ใช้ร่วมกันทุกชิป</span></div></div>';
+  $('settingsScreen').innerHTML = h;
+  $('btnSetSave').onclick = function(){ saveSettingsUi(cfg); };
+  $('btnSetBack').onclick = function(){ showScreen('data'); };
+}
+function saveSettingsUi(cfg){
+  var np = $('setPin').value.trim();
+  var payload = {
+    newPin: np,
+    sources: (cfg.sources||[]).map(function(sc){
+      return { key: sc.key,
+               syncUrl: $('setUrl_'+sc.key).value.trim(),
+               syncToken: $('setToken_'+sc.key).value.trim() };
+    })
+  };
+  overlay(true,'กำลังบันทึกการตั้งค่า…');
+  google.script.run
+    .withSuccessHandler(function(res){
+      overlay(false);
+      if (res.pinChanged && np) S.pin = np;
+      toast('บันทึกการตั้งค่าแล้ว ✓ (ทุกชิป)'+(res.pinChanged?' + เปลี่ยน PIN':''), true);
+      showScreen('data');
+    })
+    .withFailureHandler(function(e){ overlay(false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveSettings(S.pin, payload);
+}
+
+/* ---------- init / login ---------- */
+function init(){
+  $('userEmail').textContent = BOOTSTRAP.user || '';
+  var now=new Date();
+  $('from').value=ymd(new Date(now.getFullYear(),now.getMonth(),1));
+  $('to').value=ymd(now);
+
+  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(c){
+    c.onclick=function(){ setRange(c.getAttribute('data-r')); };
+  });
+  $('btnLoad').onclick=loadData;
+  $('btnSync').onclick=startSyncFlow;
+  $('rangeBtn').onclick=function(e){ e.stopPropagation(); CAL.open ? calClose() : calOpen(); };
+  $('cal').onclick=function(e){ e.stopPropagation(); };
+  document.addEventListener('click', function(){ if (CAL.open) calClose(); });
+  updateRangeLabel();
+  $('btnLogout').onclick=logout;
+  $('q').oninput=function(){ S.page=1; renderAll(); };
+  $('store').onchange=function(){ S.page=1; renderAll(); };
+  $('segRows').onclick=function(){ setView('rows'); };
+  $('segDaily').onclick=function(){ setView('daily'); };
+  $('segBranch').onclick=function(){ setView('branch'); };
+  $('btnCsv').onclick=exportCsv;
+  $('btnXlsx').onclick=exportXlsx;
+  $('btnPrint').onclick=doPrint;
+  $('btnIxEdit').onclick=startIxEdit;
+  $('btnIxSave').onclick=saveIx;
+  $('btnIxAdd').onclick=function(){
+    var n=((srcObj()&&srcObj().indexFields)||[]).length||5;
+    IX.push(new Array(n).fill('')); renderIxEditor();
+  };
+  $('btnIxCancel').onclick=function(){
+    if (!confirm('ยกเลิกการแก้ไข? การแก้ไขที่ยังไม่บันทึกจะหายไป')) return;
+    stopIxEdit(false);
+  };
+
+  $('btnEnterUser').onclick = function(){ enterApp('user'); };
+  $('btnEnterAdmin').onclick = adminLogin;
+  $('pin').addEventListener('input', function(){ this.value = this.value.replace(/\D/g,'').slice(0,6); });
+  $('pin').addEventListener('keydown', function(e){ if (e.key === 'Enter') adminLogin(); });
+
+  renderNav();
+  renderSyncInfo();
+  showScreen('login');
+}
+function adminLogin(){
+  var pin = $('pin').value.trim();
+  if (!/^\d{6}$/.test(pin)){ toast('กรุณาใส่ PIN ตัวเลข 6 หลัก'); return; }
+  overlay(true,'กำลังตรวจสอบ PIN…');
+  google.script.run
+    .withSuccessHandler(function(){ overlay(false); S.pin = pin; $('pin').value=''; enterApp('admin'); })
+    .withFailureHandler(function(e){ overlay(false); $('pin').value=''; toast(e && e.message ? e.message : e); })
+    .verifyPin(pin);
+}
+function logout(){
+  if (S.ixEdit && !confirm('ออกจากระบบ? การแก้ไข Index ที่ยังไม่บันทึกจะหายไป')) return;
+  S.role=null; S.pin=''; S.ixEdit=false; IX=[];
+  S.headers=[]; S.rows=[]; S.latest=null; S.src=''; S.tab='';
+  S.sortIdx=-1; S.page=1; S.view='rows';
+  HEALTH=null; BRANCHES=[];
+  $('q').value='';
+  $('store').innerHTML='<option value="">ทุกสาขา</option>';
+  var now=new Date();
+  $('from').value=ymd(new Date(now.getFullYear(),now.getMonth(),1));
+  $('to').value=ymd(now);
+  updateRangeLabel();
+  setNotice(''); $('healthBar').innerHTML=''; $('cards').innerHTML='';
+  $('tbl').className='data'; $('tbl').innerHTML=''; $('pager').innerHTML='';
+  $('segRows').className='on'; $('segDaily').className=''; $('segBranch').className='';
+  $('userEmail').textContent = BOOTSTRAP.user || '';
+  $('pin').value='';
+  showScreen('login');
+}
+function enterApp(role){
+  S.role = role;
+  $('userEmail').textContent = (BOOTSTRAP.user || 'ผู้ใช้ทั่วไป') + (role==='admin' ? ' (admin)' : '');
+  showScreen('data');
+  selectSrc(BOOTSTRAP.sources[0].key);
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
