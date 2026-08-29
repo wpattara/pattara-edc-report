@@ -76,6 +76,57 @@ const RAW = {
 
 
 /* ====================================================================
+ * PROCESSED-EMAIL LOG
+ *  - Historically the only record that a message had been handled was the
+ *    GMAIL_MESSAGE_ID written onto INSERTED rows. A message whose rows were
+ *    all duplicate TAX numbers left no trace, so every run re-downloaded and
+ *    re-parsed it forever (observed: ~30 messages, 0 rows, on every run).
+ *  - Keep the ids in Script Properties instead: written whether or not the
+ *    message produced rows. Pruned by age and capped so the 9 KB property
+ *    limit is never hit.
+ * ================================================================== */
+const PROCESSED_PROP = 'PROCESSED_MSG_IDS';
+const PROCESSED_KEEP_DAYS = 21;   // longer than the 7-day import window, with slack
+const PROCESSED_MAX = 350;        // ~22 bytes each, well under the 9 KB cap
+
+function loadProcessedIds_() {
+  try {
+    const raw = PropertiesService.getScriptProperties().getProperty(PROCESSED_PROP) || '';
+    const cutoff = Date.now() - PROCESSED_KEEP_DAYS * 86400000;
+    const map = {};
+    raw.split(',').forEach(part => {
+      const i = part.indexOf(':');
+      if (i < 1) return;
+      const id = part.slice(0, i), ts = Number(part.slice(i + 1));
+      if (id && ts && ts >= cutoff) map[id] = ts;
+    });
+    return map;
+  } catch (e) {
+    return {};   // unreadable log must not stop the import
+  }
+}
+
+function saveProcessedIds_(map) {
+  try {
+    const kept = Object.keys(map)
+      .map(id => [id, map[id]])
+      .sort((a, b) => b[1] - a[1])      // newest first
+      .slice(0, PROCESSED_MAX);
+    PropertiesService.getScriptProperties()
+      .setProperty(PROCESSED_PROP, kept.map(e => e[0] + ':' + e[1]).join(','));
+  } catch (e) { /* failing to save must not fail the run */ }
+}
+
+/** Wipe the log — use after deleting rows from raw so they can be re-imported. */
+function clearProcessedIds() {
+  PropertiesService.getScriptProperties().deleteProperty(PROCESSED_PROP);
+  SpreadsheetApp.getUi().alert(
+    'ล้างบันทึกเมลที่ประมวลผลแล้วเรียบร้อย — รอบถัดไปจะกลับไปอ่านเมลทุกฉบับในช่วงที่กำหนดใหม่ทั้งหมด ' +
+    '(ข้อมูลในชีตไม่ถูกแตะ ตัวกันซ้ำด้วย TAX INVOICE NO ยังทำงานตามปกติ)');
+}
+
+
+/* ====================================================================
  * MENU
  * ================================================================== */
 function onOpen() {
@@ -86,6 +137,7 @@ function onOpen() {
     .addSeparator()
     .addItem('Build index — list new merchant IDs to fill', 'menuBuildIndex')
     .addItem('Rebuild QUERY sheet (manual)', 'menuRebuildQuery')
+    .addItem('Clear processed-email log',    'clearProcessedIds')
     .addSeparator()
     .addItem('Test: email search only',      'menuTestEmail')
     .addItem('Create daily trigger',         'createTrigger')
@@ -171,6 +223,7 @@ function processKMerchantEmails_(daysBack) {
     const sheet = getOrCreateRawSheet_(ss);
     const idx   = readIndexMap_(ss);
     const seen  = loadExistingKeys_(sheet);
+    const processed = loadProcessedIds_();
 
     const gmailQuery = buildGmailQuery_(daysBack);
     const threads    = GmailApp.search(gmailQuery);
@@ -187,7 +240,7 @@ function processKMerchantEmails_(daysBack) {
         if (!subject.includes(CONFIG.SUBJECT_MAIN)) return;
 
         const msgId = message.getId();
-        if (seen.messageIds.has(msgId)) { skippedDuplicateMsg++; return; }
+        if (seen.messageIds.has(msgId) || processed[msgId]) { skippedDuplicateMsg++; return; }
 
         emailsProcessed++;
         const emailDate  = message.getDate();                       // real Date
@@ -246,6 +299,7 @@ function processKMerchantEmails_(daysBack) {
             });
           });
           seen.messageIds.add(msgId);
+          processed[msgId] = Date.now();
         } catch (e) {
           errors.push('Message ID ' + msgId + ' | ' + e.message);
         }
@@ -259,6 +313,8 @@ function processKMerchantEmails_(daysBack) {
            .setValues(outputRows);
       rowsInserted = outputRows.length;
     }
+
+    saveProcessedIds_(processed);
 
     const summary = {
       startTime, gmailQuery, daysBack,

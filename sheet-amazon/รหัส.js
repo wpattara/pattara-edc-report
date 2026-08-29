@@ -71,6 +71,7 @@ function processEmails(opt) {
 
   const sheet = getSheet_();
   const existingMsg = getSet_(sheet, 1);
+  const processed = loadProcessedIds_();
   const existingTax = getPairSet_(sheet, 5, 6); // 🔑 MERCHANT_ID|TAX
 
   const query = buildQuery_(opt);
@@ -95,7 +96,7 @@ function processEmails(opt) {
       stats.messages++;
 
       const id = msg.getId();
-      if (existingMsg.has(id)) {
+      if (existingMsg.has(id) || processed[id]) {
         stats.skipDupEmail++;
         return;
       }
@@ -176,6 +177,7 @@ function processEmails(opt) {
       if (!hasCSV) stats.skipNoCSV++;
 
       existingMsg.add(id);
+      processed[id] = Date.now();
 
     });
   });
@@ -185,10 +187,59 @@ function processEmails(opt) {
       .setValues(rows);
   }
 
+  if (!opt?.dryRun) saveProcessedIds_(processed);   // โหมดซ้อมไม่ต้องจด
+
   return stats;
 }
 
 /** ================= HELPERS ================= */
+
+/* ---------- PROCESSED-EMAIL LOG ----------
+ * เดิมร่องรอยว่า "เมลฉบับนี้ทำแล้ว" มีที่เดียวคือคอลัมน์ GMAIL_MESSAGE_ID
+ * ของแถวที่ถูกเพิ่มจริง เมลที่ทุกแถวโดนกันซ้ำจึงไม่เหลือร่องรอย แล้วถูก
+ * โหลด + แตก ZIP + แกะ CSV ใหม่ทุกรอบตลอดไป (ฝั่ง OIL วัดได้ ~30 ฉบับ/รอบ)
+ * จึงย้ายไปจดใน Script Properties แทน จดทุกฉบับไม่ว่าจะได้แถวหรือไม่
+ * ตัดของเก่าทิ้งตามอายุ + จำกัดจำนวน กันชนเพดาน 9 KB ของ property
+ */
+const PROCESSED_PROP = 'PROCESSED_MSG_IDS';
+const PROCESSED_KEEP_DAYS = 21;
+const PROCESSED_MAX = 350;
+
+function loadProcessedIds_() {
+  try {
+    const raw = PropertiesService.getScriptProperties().getProperty(PROCESSED_PROP) || '';
+    const cutoff = Date.now() - PROCESSED_KEEP_DAYS * 86400000;
+    const map = {};
+    raw.split(',').forEach(part => {
+      const i = part.indexOf(':');
+      if (i < 1) return;
+      const id = part.slice(0, i), ts = Number(part.slice(i + 1));
+      if (id && ts && ts >= cutoff) map[id] = ts;
+    });
+    return map;
+  } catch (e) {
+    return {};   // อ่านไม่ได้ต้องไม่ทำให้การดึงเมลล้ม
+  }
+}
+
+function saveProcessedIds_(map) {
+  try {
+    const kept = Object.keys(map)
+      .map(id => [id, map[id]])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, PROCESSED_MAX);
+    PropertiesService.getScriptProperties()
+      .setProperty(PROCESSED_PROP, kept.map(e => e[0] + ':' + e[1]).join(','));
+  } catch (e) { /* จดไม่ได้ต้องไม่ทำให้รอบนั้นล้ม */ }
+}
+
+/** ล้างบันทึก — ใช้เมื่อลบแถวในชีตแล้วอยากให้ระบบดึงกลับมาใหม่ (รันจากเอดิเตอร์) */
+function clearProcessedIds() {
+  PropertiesService.getScriptProperties().deleteProperty(PROCESSED_PROP);
+  const msg = 'ล้างบันทึกเมลที่ประมวลผลแล้วเรียบร้อย — รอบถัดไปจะอ่านเมลใหม่ทั้งหมดในช่วงที่กำหนด';
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* รันจากเอดิเตอร์อาจไม่มี UI */ }
+}
 
 function extractDate(s) {
   const m = s.match(/(\d{2}\/\d{2}\/\d{4})/);
