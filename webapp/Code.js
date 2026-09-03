@@ -16,7 +16,22 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = 'v1.7 · 27/08/2026';
+var APP_VERSION = '1.7.1';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+                                 // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
+
+/* คืน 'v1.7.1 · 02/09/2569' — stamp วันที่ครั้งแรกที่เจอเลขเวอร์ชันใหม่ */
+function appVersionLabel_() {
+  var p = PropertiesService.getScriptProperties();
+  if (p.getProperty('APP_VERSION') !== APP_VERSION) {
+    p.setProperty('APP_VERSION', APP_VERSION);
+    var now = new Date();
+    p.setProperty('APP_VERSION_DATE',
+      Utilities.formatDate(now, 'Asia/Bangkok', 'dd/MM/') +
+      (Number(Utilities.formatDate(now, 'Asia/Bangkok', 'yyyy')) + 543));
+  }
+  var d = p.getProperty('APP_VERSION_DATE') || '';
+  return 'v' + APP_VERSION + (d ? ' · ' + d : '');
+}
 
 var MAX_ROWS = 20000;            // เพดานแถวต่อการดึง 1 ครั้ง กันหน้าเว็บอืด
 var SYNC_COOLDOWN_SEC = 120;     // กันกดปุ่ม Sync ถี่ฝั่งแอป (endpoint กันอีกชั้น 60 วิ)
@@ -111,7 +126,7 @@ function doGet() {
 
 function buildBootstrap_() {
   return {
-    appVersion: APP_VERSION,
+    appVersion: appVersionLabel_(),
     user: getUserEmail_(),
     maxRows: MAX_ROWS,
     sources: SOURCES.map(function (s) {

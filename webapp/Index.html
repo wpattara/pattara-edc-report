@@ -97,7 +97,11 @@ main{flex:1;min-width:0;padding:18px 22px 30px}
 .grow{flex:1}
 .mini{font:inherit;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;
   border-radius:7px;padding:5px 10px}
-.mini.danger{color:var(--red);border-color:#E7C2BF}
+.mini.danger{color:var(--red);border-color:#E7C2BF;background:#FBEDEB}
+.ico{width:15px;height:15px;flex:none}
+.mini.withico{display:inline-flex;align-items:center;justify-content:center;gap:7px;font-weight:600}
+.navitem.withico{display:flex;align-items:center;gap:8px}
+.navitem.withico .ico{opacity:.75}
 
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
 .cardm{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--teal);
@@ -192,7 +196,7 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
     </div>
     <nav id="nav"></nav>
     <div class="userbox">ผู้ใช้งาน<br><b id="userEmail"></b>
-      <button class="mini" id="btnLogout" style="display:none;margin-top:8px;width:100%">⎋ ออกจากระบบ</button>
+      <button class="mini danger withico" id="btnLogout" style="display:none;margin-top:8px;width:100%"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>ออกจากระบบ</span></button>
     </div>
   </aside>
 
@@ -322,7 +326,8 @@ function renderNav(){
     '<button class="navitem'+(S.screen==='data'?' on':'')+'" id="navData">ขึ้นเงินบัตรเครดิต (EDC)</button>';
   if (S.role === 'admin'){
     html += '<div class="navdiv"></div>'+
-      '<button class="navitem'+(S.screen==='settings'?' on':'')+'" id="navSet">⚙️ ตั้งค่าระบบ</button>';
+      '<button class="navitem withico'+(S.screen==='settings'?' on':'')+'" id="navSet">'+
+        '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>ตั้งค่าระบบ</span></button>';
   }
   $('nav').innerHTML = html;
   $('navData').onclick = function(){ showScreen('data'); };
