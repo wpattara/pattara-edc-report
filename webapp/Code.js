@@ -16,7 +16,8 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '1.7.1';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '1.8.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+                                 // 1.8.0 = สั่ง rebuild แท็บ query จากหน้าเว็บได้ (ผู้ดูแล)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 
 /* คืน 'v1.7.1 · 02/09/2569' — stamp วันที่ครั้งแรกที่เจอเลขเวอร์ชันใหม่ */
@@ -35,6 +36,7 @@ function appVersionLabel_() {
 
 var MAX_ROWS = 20000;            // เพดานแถวต่อการดึง 1 ครั้ง กันหน้าเว็บอืด
 var SYNC_COOLDOWN_SEC = 120;     // กันกดปุ่ม Sync ถี่ฝั่งแอป (endpoint กันอีกชั้น 60 วิ)
+var REBUILD_COOLDOWN_SEC = 30;   // กันกดปุ่ม rebuild ถี่ฝั่งแอป (endpoint กันอีกชั้น 30 วิ)
 var PIN_DEFAULT = '123456';      // PIN ผู้ดูแล (เปลี่ยนภายหลังได้ใน ⚙️ ตั้งค่าระบบ)
 
 /* ── แหล่งข้อมูล (อนาคตเพิ่ม BBL / KTB / TTB / Krungsri / OIL อื่น: เพิ่ม object ต่อท้าย) ── */
@@ -46,6 +48,9 @@ var SOURCES = [{
   fileLabel: 'EDC wc_oil6 Amazon',         // ใช้ตั้งชื่อไฟล์ดาวน์โหลด
   ssId: '1EcgNdmrMDIpLhg489TQApJyVtQynEFcwUClMhBhkvq8',
   logSheet: 'WebApp_Log',
+  /* แท็บ query ของชีตนี้เป็น ARRAYFORMULA (VLOOKUP กลับไป Index) — ปุ่ม rebuild = สั่งคำนวณสูตรใหม่
+     ต่างจาก OIL/BBL ที่ query เป็นค่าจริงและต้องสร้างแถวใหม่ทั้งแท็บ */
+  queryMode: 'formula',
   /* ตำแหน่งคอลัมน์แบบ fix ตามชีตจริง (ใช้กับ Index editor + ตัวตรวจค่าว่าง) */
   rawSheet: 'K_Merchant_CSV_Data',         // E=MERCHANT_ID F=TAX D(4)=BRANCH_NAME M(13)=รหัสสาขา BC
   indexSheet: 'Index',                     // A=ลำดับ B=MERCHANT_ID C=BC D=ชื่อร้านค้า E=ที่อยู่ F=สาขา
@@ -70,6 +75,7 @@ var SOURCES = [{
   fileLabel: 'EDC OIL-Park',
   ssId: '1nCk-2Hr_t6NJFJszypCcHrpgJqnAVZVnhTtfYuPHUKM',
   logSheet: 'WebApp_Log',
+  queryMode: 'rows',                       // query เป็นค่าจริง — rebuildQuerySheet_() ในสคริปต์ของชีต
   rawSheet: 'K-Merchant Raw Data',         // ตำแหน่งคอลัมน์เหมือนชีต Amazon ทุกช่อง
   indexSheet: 'index',                     // A=MERCHANT_ID B=เจ้าของ(BC) C=DATABASE — ไม่มีลำดับ
   indexEditable: false,                    // ชีตของบัญชี wattanaoil — เปิดดูอย่างเดียว แก้ที่ชีตต้นทาง
@@ -93,6 +99,7 @@ var SOURCES = [{
   fileLabel: 'EDC BBL OIL',
   ssId: '1HgQ4OS-cDuyhuJkv1ZOC0xvkXBV5Qeg3wpx-NsVcZjs',
   logSheet: 'WebApp_Log',
+  queryMode: 'rows',                       // query เป็นค่าจริง — rebuildQuerySheet() ในสคริปต์ของชีต
   rawSheet: 'BBL eTax Invoices',           // 17 คอลัมน์ ตำแหน่ง MERCHANT/TAX/BRANCH เหมือน K-Bank แต่ BC อยู่ N + มี PDF/STATUS
   indexSheet: 'index',                     // A=ลำดับ B=MERCHANT_ID C=BC D=DATABASE E=BRANCH_NAME F=หมายเหตุ
   indexEditable: false,                    // ชีตของบัญชี wattanaoil — ดูอย่างเดียว แก้ที่ชีตต้นทาง
@@ -134,6 +141,7 @@ function buildBootstrap_() {
         key: s.key, label: s.label, sublabel: s.sublabel || '',
         color: s.color || '#0E6E5C', fileLabel: s.fileLabel || s.label,
         canSync: true,
+        queryMode: s.queryMode || 'rows',
         indexEditable: !!s.indexEditable,
         indexFields: (s.indexSchema && s.indexSchema.fields) || [],
         tabs: s.tabs.map(function (t) {
@@ -495,6 +503,67 @@ function startSync(sourceKey) {
   };
   props.setProperty('SYNC_LAST_INFO_' + src.key, JSON.stringify(info));
   return { ok: true, stats: data.stats, lastSync: info };
+}
+
+/* ====================== Rebuild query (admin) ====================== */
+/* แท็บ query คือแท็บที่ทั้งแอปใช้คิดยอด แต่เดิมสั่งสร้างใหม่ได้จากเมนูในชีตเท่านั้น
+   ปุ่มนี้ยิง action=rebuild ไป SyncEndpoint ตัวเดียวกับ Sync — ไม่แตะ Gmail จึงเร็วและไม่กิน quota
+     · wcoil6  → query เป็น ARRAYFORMULA  = เขียนสูตรเดิมทับตัวเองเพื่อบังคับ recalc
+     · oilpark → rebuildQuerySheet_()      = สร้างแถวใหม่ทั้งแท็บจากชีตดิบ + index
+     · bbloil  → rebuildQuerySheet()       = สร้างแถวใหม่ทั้งแท็บจากชีตดิบ + index
+   จำกัดเฉพาะผู้ดูแล เพราะเป็นการ "เขียนชีต" ไม่ใช่การอ่าน */
+
+function startRebuild(pin, sourceKey) {
+  assertPin_(pin);
+  var src = srcOf_(sourceKey);
+  var props = PropertiesService.getScriptProperties();
+  var url = props.getProperty('SYNC_URL_' + src.key);
+  var token = props.getProperty('SYNC_TOKEN_' + src.key);
+  if (!url || !token) {
+    return { ok: false, reason: 'notconfigured',
+             message: 'ยังไม่ได้ตั้งค่า Sync URL / Token ของชิปนี้ — กรอกใน ⚙️ ตั้งค่าระบบ ก่อน' };
+  }
+
+  var lastTs = Number(props.getProperty('REBUILD_APP_TS_' + src.key) || 0);
+  var now = Date.now();
+  if (now - lastTs < REBUILD_COOLDOWN_SEC * 1000) {
+    return { ok: false, reason: 'cooldown',
+             waitSec: Math.ceil((REBUILD_COOLDOWN_SEC * 1000 - (now - lastTs)) / 1000) };
+  }
+
+  var full = url + (url.indexOf('?') > -1 ? '&' : '?') +
+             'token=' + encodeURIComponent(token) + '&action=rebuild';
+  var data;
+  try {
+    var resp = UrlFetchApp.fetch(full, { muteHttpExceptions: true, followRedirects: true });
+    data = JSON.parse(resp.getContentText());
+  } catch (e) {
+    /* ได้ HTML แทน JSON = endpoint ถูก deploy เป็น "Anyone with Google account" หรือ URL เป็นเวอร์ชันเก่า */
+    return { ok: false, reason: 'error',
+             message: 'เรียก Endpoint ไม่สำเร็จ — ตรวจว่า deploy เป็น Web app แบบ Anyone ' +
+                      'และ endpoint เวอร์ชันที่ใช้อยู่รองรับ action=rebuild แล้ว' };
+  }
+  if (!data || !data.ok) {
+    if (data && data.error === 'cooldown') return { ok: false, reason: 'cooldown', waitSec: data.waitSec || 30 };
+    return { ok: false, reason: 'error',
+             message: 'สร้างตาราง query ใหม่ไม่สำเร็จ: ' + ((data && data.error) || 'ไม่ทราบสาเหตุ') };
+  }
+
+  props.setProperty('REBUILD_APP_TS_' + src.key, String(now));
+  var unknown = data.unknownMerchants || [];
+  log_('สร้างตาราง query ใหม่ (' + src.key + ')',
+       'mode=' + (data.mode || '-') + ' · แถว ' + (data.rebuilt == null ? '-' : data.rebuilt) +
+       (unknown.length ? ' · MERCHANT ที่ยัง map ไม่ได้ ' + unknown.length + ': ' + unknown.join(', ') : ''));
+
+  return {
+    ok: true,
+    mode: data.mode || 'rows',
+    rebuilt: data.rebuilt == null ? null : data.rebuilt,
+    unknownMerchants: unknown,
+    warnings: data.warnings || [],
+    at: data.at || '',
+    health: checkHealth_(src)          // แบนเนอร์แดง/ปุ่ม export ต้องอัปเดตตามผลใหม่ทันที
+  };
 }
 
 function lastSyncInfo_(sourceKey) {

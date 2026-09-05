@@ -15,12 +15,18 @@
  * พฤติกรรม: ตรวจ token → กันยิงถี่ (cooldown) → เรียกตัวดึงเมลของสคริปต์เดิม
  * ดึงเมลย้อนหลัง 7 วัน (สคริปต์ตระกูลนี้กันข้อมูลซ้ำอยู่แล้ว) → rebuild แท็บ query → ตอบ stats กลับ
  * ❗ ไม่ยุ่งกับ trigger รายวันเดิมของชีตนี้ — ทำงานคู่กันได้
+ *
+ * 🆕 action=rebuild : สร้างแท็บ query ใหม่จากข้อมูลดิบ + index ปัจจุบัน "โดยไม่แตะ Gmail"
+ *   ใช้ตอนเพิ่ง map MERCHANT_ID ใหม่ใน index แล้วอยากให้ query อัปเดตทันที
+ *   เร็วกว่า Sync มาก และไม่กิน quota อ่านเมล
+ *   GET ...?token=<TOKEN>&action=rebuild
  ************************************************************/
 
 const SYNC_TOKEN = 'oilpark-kbank-5183-sync';  // 🔒 ต้องตรงกับที่กรอกใน ⚙️ ของเว็บแอป
 const SYNC_DAYS_BACK = 7;                      // ปุ่ม Sync ดึงเมลย้อนหลัง 7 วัน
 const SYNC_COOLDOWN_SEC = 60;                  // กันยิงถี่ฝั่ง endpoint (ฝั่งแอปกัน 2 นาทีอีกชั้น)
 const SYNC_REBUILD_QUERY = true;               // sync แล้ว rebuild แท็บ query ต่อ (แอป EDC อ่านแท็บนี้)
+const REBUILD_COOLDOWN_SEC = 30;               // cooldown แยกของ action=rebuild (ไม่แตะเมล จึงถี่กว่าได้)
 
 /* ธงบอกสคริปต์เดิมว่า "รอบนี้มาจากปุ่ม Sync" → ไม่ต้องส่งเมลรายงาน (ดู sendReport_ ใน Code.js) */
 var SYNC_SILENT_ = false;
@@ -60,12 +66,49 @@ function processEmails(opts) {
   };
 }
 
+/**
+ * action=rebuild — สร้างแท็บ query ใหม่จากข้อมูลดิบ + index ปัจจุบัน ไม่แตะ Gmail
+ * ใช้ cooldown แยกจาก Sync เพราะงานเบากว่ามาก (แค่อ่าน-เขียนชีต)
+ */
+function handleRebuild_(out) {
+  if (typeof rebuildQuerySheet_ !== 'function') {
+    return out({ ok: false,
+      error: 'ไม่พบฟังก์ชัน rebuildQuerySheet_ ในโปรเจกต์นี้ — สคริปต์ของชีตนี้อาจเปลี่ยนชื่อฟังก์ชัน' });
+  }
+
+  const props = PropertiesService.getScriptProperties();
+  const last = Number(props.getProperty('REBUILD_LAST_TS') || 0);
+  const now = Date.now();
+  if (now - last < REBUILD_COOLDOWN_SEC * 1000) {
+    return out({ ok: false, error: 'cooldown',
+                 waitSec: Math.ceil((REBUILD_COOLDOWN_SEC * 1000 - (now - last)) / 1000) });
+  }
+
+  const r = rebuildQuerySheet_() || {};
+  // rebuildQuerySheet_ ถือ ScriptLock เอง — ชนกับ trigger รายวันได้ ต้องบอกผู้ใช้ตรงๆ ไม่ใช่รายงานว่าสำเร็จ
+  if (r.aborted) return out({ ok: false, error: r.reason || 'กำลังมีงานอื่นรันอยู่ กรุณารอสักครู่' });
+
+  props.setProperty('REBUILD_LAST_TS', String(now));
+  return out({
+    ok: true,
+    action: 'rebuild',
+    mode: 'rows',                                   // แท็บ query ของชีตนี้เป็นค่าจริง ไม่ใช่สูตร
+    at: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm'),
+    rebuilt: r.rebuilt || 0,
+    refreshed: r.refreshed || 0,
+    unknownMerchants: r.unknownMerchants || [],
+    warnings: r.warnings || []
+  });
+}
+
 function handleSync_(e) {
   const out = o => ContentService.createTextOutput(JSON.stringify(o))
                                  .setMimeType(ContentService.MimeType.JSON);
   try {
     const token = e && e.parameter && e.parameter.token;
     if (token !== SYNC_TOKEN) return out({ ok: false, error: 'invalid token' });
+
+    if (e && e.parameter && e.parameter.action === 'rebuild') return handleRebuild_(out);
 
     if (typeof processKMerchantEmails_ !== 'function') {
       return out({ ok: false,
