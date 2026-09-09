@@ -92,10 +92,27 @@ curl "https://script.google.com/macros/s/<id>/exec?token=WRONG"
 - **ห้ามถือ ScriptLock คร่อมงานดึงเมล** เพราะข้างในขอ lock ตัวเดียวกันซ้ำ → ชนตัวเอง ล็อกแค่ช่วงจอง cooldown แล้วปล่อย
 - **บันทึกเมลที่ทำแล้วอยู่ใน Script Properties** (`PROCESSED_MSG_IDS`) ไม่ใช่ในชีต — เดิมจดไว้ที่คอลัมน์ `GMAIL_MESSAGE_ID` ของแถวที่เพิ่มจริงเท่านั้น เมลที่ทุกแถวโดนกันซ้ำจึงถูกแกะใหม่ทุกรอบตลอดไป (วัดได้ ~30 ฉบับ/รอบ) · ล้างด้วย `clearProcessedIds()`
 
+## สถานะ deploy (9 ก.ย. 2569)
+
+ทั้ง 3 ชิปใช้งานได้ครบ · redeploy ทับ deployment เดิมทุกตัว **URL ไม่เปลี่ยน**
+
+| ชิป | version | บัญชีที่ deploy | ตัวแก้ `PROCESSED_MSG_IDS` | `action=rebuild` |
+|---|---|---|---|---|
+| K-Bank OIL | 4 | wattanaoil123@gmail.com | ✅ | ✅ |
+| BBL | 3 | wattanaoil123@gmail.com | — (คนละโครงโค้ด ยังไม่ได้ตรวจว่ามีอาการเดียวกันไหม) | ✅ |
+| K-Bank Amazon | 4 | ac@tgrhotel.com | ✅ | ✅ |
+
+**ผลวัดตัวแก้เมลวนซ้ำ** — ยิง 2 รอบติดกัน:
+
+| | OIL (5 ก.ย.) | Amazon (9 ก.ย.) |
+|---|---|---|
+| ก่อนแก้ | `emails 31` แกะ ZIP ทุกรอบ | `skipDupTax 1517` · `skipNoCSV 26` |
+| หลังแก้ รอบ 2 | `emails 0` · `skipDupEmail 48` | `skipDupTax 0` · `skipNoCSV 0` · `skipDupEmail 117` |
+
+> ⚠️ ตอน redeploy ฝั่ง Amazon กลับมาเป็น ac@ ครั้งแรกได้ `inserted: 123` — **มีข้อมูล 123 แถวที่หายไปเพราะ deploy ผิดบัญชี** อย่าเชื่อว่า trigger รายวันครอบคลุมอยู่แล้ว
+
 ## หนี้ที่ยังค้าง
 
-- [ ] **Amazon** — `ac@tgrhotel.com` ต้อง redeploy ทับ เพื่อย้ายตัวตนกลับจาก gm (ตอนนี้ปุ่ม Sync ตอบ `ok:true` แต่ได้ 0 แถวเสมอ · trigger รายวันยังทำงานปกติ ข้อมูลไม่ขาด)
-- [ ] **ยังไม่ deploy ตัวแก้ `PROCESSED_MSG_IDS`** — โค้ดอยู่บน branch `vscode` เท่านั้น ยังไม่ขึ้นคลาวด์
 - [ ] `ADMIN_PIN` ของเว็บแอปเก็บเป็น plaintext และ**ตกกลับไปใช้ `123456` เงียบ ๆ** ถ้าค่าผิดรูป
 - [ ] เว็บแอปเปิด `ANYONE_ANONYMOUS` กั้นด้วย login ฝั่ง client เท่านั้น = ข้อมูลยอดทุกสาขาเปิดให้คนมีลิงก์
 - [ ] `SYNC_TOKEN` hardcode ในโค้ดทั้ง 3 endpoint ควรย้ายไป Script Properties
