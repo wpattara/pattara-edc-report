@@ -37,7 +37,7 @@ function appVersionLabel_() {
 var MAX_ROWS = 20000;            // เพดานแถวต่อการดึง 1 ครั้ง กันหน้าเว็บอืด
 var SYNC_COOLDOWN_SEC = 120;     // กันกดปุ่ม Sync ถี่ฝั่งแอป (endpoint กันอีกชั้น 60 วิ)
 var REBUILD_COOLDOWN_SEC = 30;   // กันกดปุ่ม rebuild ถี่ฝั่งแอป (endpoint กันอีกชั้น 30 วิ)
-var PIN_DEFAULT = '123456';      // PIN ผู้ดูแล (เปลี่ยนภายหลังได้ใน ⚙️ ตั้งค่าระบบ)
+var PIN_DEFAULT = '123456';      // PIN ตั้งต้น — ใช้ตอนยังไม่เคยตั้ง และตอน resetAdminPin() เท่านั้น
 
 /* ── แหล่งข้อมูล (อนาคตเพิ่ม BBL / KTB / TTB / Krungsri / OIL อื่น: เพิ่ม object ต่อท้าย) ── */
 var SOURCES = [{
@@ -156,14 +156,57 @@ function buildBootstrap_() {
 
 /* ====================== Auth ====================== */
 
-function adminPin_() {
-  // PIN ต้องเป็นตัวเลข 6 หลักเสมอ — ค่าที่เก็บไว้ผิดรูป (เช่นของเก่า) ให้ตกกลับมาใช้ค่าเริ่มต้น
-  var v = PropertiesService.getScriptProperties().getProperty('ADMIN_PIN') || '';
-  return /^\d{6}$/.test(v) ? v : PIN_DEFAULT;
+/* PIN ผู้ดูแลเก็บเป็น sha256(pin + '|' + salt) ไม่เก็บตัวเลขตรง ๆ
+   แพตเทิร์นเดียวกับแอปอื่นของกลุ่ม · salt สุ่มครั้งเดียวต่อโปรเจกต์
+   คนที่เปิด Script Properties ดูจึงย้อนกลับเป็นตัว PIN ไม่ได้ */
+
+function sha256_(text) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, text, Utilities.Charset.UTF_8)
+    .map(function (x) { return ('0' + (x & 0xff).toString(16)).slice(-2); }).join('');
+}
+
+function adminSalt_() {
+  var p = PropertiesService.getScriptProperties();
+  var s = p.getProperty('PIN_SALT');
+  if (!s) { s = Utilities.getUuid(); p.setProperty('PIN_SALT', s); }
+  return s;
+}
+
+function hashPin_(pin) { return sha256_(String(pin || '') + '|' + adminSalt_()); }
+
+/* คืน hash ที่เก็บไว้ พร้อมย้ายของเก่าให้อัตโนมัติ
+   - hex 64 ตัว  = เป็น hash อยู่แล้ว
+   - ตัวเลข 6 หลัก = ของเดิมที่เก็บเป็น plaintext → เข้ารหัสทับให้ครั้งเดียว PIN เดิมยังใช้ได้
+   - ว่าง/ผิดรูป   = ตั้งเป็นค่าเริ่มต้น แต่ปักธง PIN_IS_DEFAULT ไว้เพื่อเตือนในหน้าตั้งค่า
+     (ของเดิมตกกลับไป 123456 เงียบ ๆ โดยไม่มีอะไรบอก) */
+function adminPinHash_() {
+  var p = PropertiesService.getScriptProperties();
+  var v = String(p.getProperty('ADMIN_PIN') || '').trim();
+
+  if (/^[0-9a-f]{64}$/.test(v)) return v;
+
+  if (/^\d{6}$/.test(v)) {
+    var h = hashPin_(v);
+    p.setProperty('ADMIN_PIN', h);
+    p.deleteProperty('PIN_IS_DEFAULT');
+    log_('ย้าย PIN เป็นแบบเข้ารหัส', 'ของเดิมเก็บเป็นตัวเลขตรง ๆ — PIN เดิมยังใช้ได้ตามปกติ');
+    return h;
+  }
+
+  var d = hashPin_(PIN_DEFAULT);
+  p.setProperty('ADMIN_PIN', d);
+  p.setProperty('PIN_IS_DEFAULT', '1');
+  log_('ตั้ง PIN เริ่มต้น', 'ไม่พบ ADMIN_PIN ที่ใช้ได้ — ตั้งค่าเริ่มต้นและปักธงเตือน');
+  return d;
+}
+
+/** จริง = PIN ยังเป็นค่าเริ่มต้น หน้าตั้งค่าจะขึ้นแถบเตือนสีแดง */
+function pinIsDefault_() {
+  return PropertiesService.getScriptProperties().getProperty('PIN_IS_DEFAULT') === '1';
 }
 
 function assertPin_(pin) {
-  if (String(pin || '') !== adminPin_()) throw new Error('เฉพาะผู้ดูแลระบบ — PIN ไม่ถูกต้อง');
+  if (hashPin_(pin) !== adminPinHash_()) throw new Error('เฉพาะผู้ดูแลระบบ — PIN ไม่ถูกต้อง');
 }
 
 /** ตรวจ PIN ตอน login ผู้ดูแล พร้อมกันเดารหัส: ผิดครบ 8 ครั้ง ล็อก 15 นาที */
@@ -172,9 +215,21 @@ function verifyPin(pin) {
   var key = 'pinfail_' + (getUserEmail_() || 'anon');
   var fails = parseInt(cache.get(key), 10) || 0;
   if (fails >= 8) throw new Error('ใส่ PIN ผิดหลายครั้งเกินไป — กรุณารอ 15 นาทีแล้วลองใหม่');
-  if (String(pin || '') === adminPin_()) { cache.remove(key); return { ok: true }; }
+  if (hashPin_(pin) === adminPinHash_()) {
+    cache.remove(key);
+    return { ok: true, pinIsDefault: pinIsDefault_() };
+  }
   cache.put(key, String(fails + 1), 900);
   throw new Error('PIN ไม่ถูกต้อง (' + (fails + 1) + '/8)');
+}
+
+/** กู้ PIN กลับเป็นค่าเริ่มต้น — เปิดเอดิเตอร์แล้วกด เรียกใช้ เฉพาะตอนลืม PIN */
+function resetAdminPin() {
+  var p = PropertiesService.getScriptProperties();
+  p.setProperty('ADMIN_PIN', hashPin_(PIN_DEFAULT));
+  p.setProperty('PIN_IS_DEFAULT', '1');
+  log_('รีเซ็ต PIN ผู้ดูแล', 'สั่งจากเอดิเตอร์');
+  Logger.log('รีเซ็ต PIN เป็น ' + PIN_DEFAULT + ' แล้ว — เข้าระบบแล้วรีบเปลี่ยนในหน้าตั้งค่าระบบ');
 }
 
 function getUserEmail_() {
@@ -581,6 +636,7 @@ function getSettings(pin) {
   var props = PropertiesService.getScriptProperties();
   return {
     ok: true,
+    pinIsDefault: pinIsDefault_(),
     sources: SOURCES.map(function (s) {
       return {
         key: s.key, label: s.label, sublabel: s.sublabel || '',
@@ -607,7 +663,9 @@ function saveSettings(pin, obj) {
   var np = String(obj.newPin || '').trim();
   if (np) {
     if (!/^\d{6}$/.test(np)) throw new Error('PIN ใหม่ต้องเป็นตัวเลข 6 หลัก');
-    props.setProperty('ADMIN_PIN', np);
+    if (np === PIN_DEFAULT) throw new Error('PIN ใหม่ซ้ำกับค่าเริ่มต้น กรุณาตั้งเลขอื่น');
+    props.setProperty('ADMIN_PIN', hashPin_(np));
+    props.deleteProperty('PIN_IS_DEFAULT');
   }
   log_('บันทึกตั้งค่า', 'Sync URL/Token (' + touched.join(', ') + ')' + (np ? ' + เปลี่ยน PIN' : ''));
   return { ok: true, pinChanged: !!np };
