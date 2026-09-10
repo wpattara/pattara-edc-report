@@ -22,7 +22,28 @@
  *   GET ...?token=<TOKEN>&action=rebuild
  ************************************************************/
 
-const SYNC_TOKEN = 'oilpark-kbank-5183-sync';  // 🔒 ต้องตรงกับที่กรอกใน ⚙️ ของเว็บแอป
+/* 🔒 token อยู่ใน Script Properties (คีย์ SYNC_TOKEN) ไม่ใช่ในโค้ด
+   ค่าข้างล่างเป็นแค่ค่าตั้งต้นตอนย้าย — เรียกครั้งแรกจะคัดลอกลง property ให้เอง ของเดิมจึงไม่พัง
+   อยากเปลี่ยนเป็นค่าสุ่มเมื่อไหร่ ให้รัน rotateSyncToken() จากเอดิเตอร์
+   แล้วเอาค่าที่ได้ไปกรอกใน ⚙️ ตั้งค่าระบบ ของเว็บแอป */
+const SYNC_TOKEN_INIT = 'oilpark-kbank-5183-sync';
+
+function syncToken_() {
+  const p = PropertiesService.getScriptProperties();
+  let t = p.getProperty('SYNC_TOKEN');
+  if (!t) { t = SYNC_TOKEN_INIT; p.setProperty('SYNC_TOKEN', t); }
+  return t;
+}
+
+/** สุ่ม token ใหม่ — รันจากเอดิเตอร์ แล้วดูค่าที่ได้ใน บันทึกการดำเนินการ
+ *  ⚠️ ปุ่ม 🔄 Sync ของชิปนี้จะใช้ไม่ได้ จนกว่าจะเอาค่าใหม่ไปกรอกใน ⚙️ ตั้งค่าระบบ การ์ด "K-Bank · OIL 1/4/5/6 · TT/TK" */
+function rotateSyncToken() {
+  const t = 'oilpark-' + Utilities.getUuid().replace(/-/g, '').slice(0, 16);
+  PropertiesService.getScriptProperties().setProperty('SYNC_TOKEN', t);
+  Logger.log('SYNC_TOKEN ใหม่ = ' + t);
+  Logger.log('→ ไปกรอกใน ⚙️ ตั้งค่าระบบ ของเว็บแอป การ์ด "K-Bank · OIL 1/4/5/6 · TT/TK" แล้วกดบันทึก');
+  return t;
+}
 const SYNC_DAYS_BACK = 7;                      // ปุ่ม Sync ดึงเมลย้อนหลัง 7 วัน
 const SYNC_COOLDOWN_SEC = 60;                  // กันยิงถี่ฝั่ง endpoint (ฝั่งแอปกัน 2 นาทีอีกชั้น)
 const SYNC_REBUILD_QUERY = true;               // sync แล้ว rebuild แท็บ query ต่อ (แอป EDC อ่านแท็บนี้)
@@ -106,7 +127,7 @@ function handleSync_(e) {
                                  .setMimeType(ContentService.MimeType.JSON);
   try {
     const token = e && e.parameter && e.parameter.token;
-    if (token !== SYNC_TOKEN) return out({ ok: false, error: 'invalid token' });
+    if (token !== syncToken_()) return out({ ok: false, error: 'invalid token' });
 
     if (e && e.parameter && e.parameter.action === 'rebuild') return handleRebuild_(out);
 
