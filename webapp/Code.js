@@ -16,7 +16,7 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '1.11.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '1.12.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
                                  // 1.8.0 = สั่ง rebuild แท็บ query จากหน้าเว็บได้ (ผู้ดูแล)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 
@@ -122,7 +122,41 @@ var SOURCES = [{
 
 /* ====================== Web entry ====================== */
 
-function doGet() {
+/** ลิงก์แอปรูปที่แจกได้ — บัญชีองค์กรจะได้ /a/macros/<โดเมน>/ ซึ่งบังคับล็อกอินโดเมนนั้น
+ *  ต้องแปลงกลับเป็น /macros/ เสมอ (pattara-webapp-standards ข้อ 6) */
+function appPublicUrl_() {
+  var u = '';
+  try { u = ScriptApp.getService().getUrl() || ''; } catch (e) { u = ''; }
+  return u.replace(/\/a\/macros\/[^\/]+\//, '/macros/');
+}
+
+/** ลิงก์คู่มือ — ไม่ได้ตั้ง APP_MANUAL_URL ให้ตกมาที่หน้าคู่มือในตัวแอป */
+function manualUrl_() {
+  var v = String(PropertiesService.getScriptProperties().getProperty('APP_MANUAL_URL') || '').trim();
+  if (v) return v;
+  var base = appPublicUrl_();
+  return base ? (base + '?page=manual') : '';
+}
+
+function thDate_(d) {
+  return Utilities.formatDate(d, 'Asia/Bangkok', 'dd/MM/') +
+    (Number(Utilities.formatDate(d, 'Asia/Bangkok', 'yyyy')) + 543);
+}
+
+function doGet(e) {
+  if (e && e.parameter && e.parameter.page === 'manual') {
+    var props = PropertiesService.getScriptProperties();
+    var m = HtmlService.createTemplateFromFile('Manual');
+    m.boot = JSON.stringify({
+      appName: props.getProperty('APP_NAME') || 'ระบบขึ้นเงินบัตรเครดิต EDC',
+      appVersion: appVersionLabel_(),
+      appIcon: getAppIcon_(),
+      today: thDate_(new Date())
+    });
+    return m.evaluate()
+      .setTitle('คู่มือการใช้งาน — ระบบขึ้นเงินบัตรเครดิต EDC')
+      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  }
   var t = HtmlService.createTemplateFromFile('Index');
   t.bootstrap = JSON.stringify(buildBootstrap_());
   return t.evaluate()
@@ -134,7 +168,7 @@ function doGet() {
 function buildBootstrap_() {
   return {
     appVersion: appVersionLabel_(),
-    manualUrl: PropertiesService.getScriptProperties().getProperty('APP_MANUAL_URL') || '',
+    manualUrl: manualUrl_(),
     appName: PropertiesService.getScriptProperties().getProperty('APP_NAME') || 'ระบบขึ้นเงินบัตรเครดิต',
     appDesc: PropertiesService.getScriptProperties().getProperty('APP_DESC') || '',
     appIcon: getAppIcon_(),

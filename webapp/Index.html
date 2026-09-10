@@ -21,8 +21,9 @@ body{font-family:'Sarabun',sans-serif;background:var(--paper);color:var(--ink);f
 #app{display:flex;min-height:100vh}
 
 /* ---------- sidebar (มาตรฐานกลุ่ม: พื้นเข้ม · ย่อได้ · เมนูผู้ใช้ก้นแถบ) ---------- */
-aside{position:relative;width:236px;flex:0 0 236px;background:var(--sbbg);color:var(--sbtext);
-  display:flex;flex-direction:column;top:0;height:100vh;transition:width .15s,flex-basis .15s}
+aside{position:sticky;top:0;align-self:flex-start;width:236px;flex:0 0 236px;
+  background:var(--sbbg);color:var(--sbtext);
+  display:flex;flex-direction:column;height:100vh;transition:width .15s,flex-basis .15s}
 @media (max-width:1366px){aside{width:212px;flex-basis:212px}}
 aside.mini{width:56px;flex-basis:56px}
 
@@ -103,8 +104,7 @@ main{flex:1;min-width:0;padding:18px 22px 30px}
   text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pillsrow{display:flex;align-items:flex-start;gap:14px;margin-bottom:16px}
 .pillsrow .pills{margin-bottom:0}
-.synctop{margin-left:auto;text-align:right;flex-shrink:0}
-.synctop #syncInfo{display:block;font-size:11.5px;color:var(--mut);margin-top:6px}
+#syncInfo{font-size:11.5px;color:var(--mut)}
 
 .rangewrap{position:relative;display:inline-block}
 .rangebtn{font:inherit;font-size:13px;cursor:pointer;padding:7px 12px;border:1px solid var(--line);
@@ -387,26 +387,6 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
     <div id="dataScreen">
       <div class="pillsrow">
         <div class="pills" id="pills"></div>
-        <div class="synctop">
-          <button class="btn withico" id="btnSync">
-            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 12a9 9 0 0 1-9 9c-4.97 0-9-4.03-9-9s4.03-9 9-9c2.87 0 5.43 1.35 7.07 3.44"/>
-              <polyline points="21 3 21 9 15 9"/>
-            </svg>
-            <span>Sync ข้อมูลล่าสุด</span>
-          </button>
-          <button class="btn withico" id="btnRebuild" style="display:none;margin-left:8px"
-                  title="สร้างแท็บ query ใหม่จากข้อมูลดิบ + Index ปัจจุบัน (ไม่ดึงเมล)">
-            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 5h18"/><path d="M3 12h18"/><path d="M3 19h9"/>
-              <path d="M17 20.5a3.5 3.5 0 1 0-2.6-5.85"/><polyline points="14 13 14.4 16.2 17.6 15.8"/>
-            </svg>
-            <span>สร้างตาราง query ใหม่</span>
-          </button>
-          <span id="syncInfo"></span>
-        </div>
       </div>
       <div class="tabsbar">
         <div class="tabs" id="tabs"></div>
@@ -423,17 +403,27 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
         <button type="button" id="rangeBtn"></button>
         <input type="hidden" id="from"><input type="hidden" id="to">
         <button class="btn pri" id="btnLoad">ดึงข้อมูล</button>
+        <span class="grow"></span>
+        <button class="btn" id="btnCsv">CSV</button>
+        <button class="btn" id="btnXlsx">Excel</button>
+        <button class="btn" id="btnPrint">PDF</button>
       </div>
 
       <div id="syncRow" style="display:flex;align-items:center;gap:10px;margin:2px 0 12px;flex-wrap:wrap">
+        <button class="btn withico" id="btnSync">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12a9 9 0 0 1-9 9c-4.97 0-9-4.03-9-9s4.03-9 9-9c2.87 0 5.43 1.35 7.07 3.44"/>
+              <polyline points="21 3 21 9 15 9"/>
+            </svg>
+            <span>Sync ข้อมูลล่าสุด</span>
+          </button>
+        <span id="syncInfo"></span>
         <span class="grow"></span>
         <button class="btn withico" id="btnIxEdit" style="display:none"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg><span>แก้ไข Index</span></button>
         <button class="btn pri withico" id="btnIxSave" style="display:none"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>บันทึก Index</span></button>
         <button class="btn" id="btnIxAdd" style="display:none">＋ เพิ่มแถว</button>
         <button class="btn" id="btnIxCancel" style="display:none">ยกเลิก</button>
-        <button class="btn" id="btnCsv">CSV</button>
-        <button class="btn" id="btnXlsx">Excel</button>
-        <button class="btn" id="btnPrint">PDF</button>
       </div>
       <div id="healthBar"></div>
       <div id="notice"></div>
@@ -1200,56 +1190,9 @@ function startSyncFlow(){
 /* ---------- สร้างตาราง query ใหม่ (admin) ---------- */
 /* ต่างจาก Sync: ไม่ดึงเมลใหม่ แค่เอาข้อมูลดิบ + Index ที่มีอยู่มาประกอบแท็บ query ใหม่
    ใช้ตอนเพิ่ง map MERCHANT_ID ใน Index แล้วอยากให้ยอดในแอปตรงทันที */
-function startRebuildFlow(){
-  var k = S.src, p = srcObj();
-  var formula = !!(p && p.queryMode === 'formula');
-  var warn = formula
-    ? 'สั่งให้แท็บ query ของชิปนี้คำนวณสูตรใหม่?\n\n' +
-      'แท็บนี้เป็น ARRAYFORMULA — ระบบจะเขียนสูตรเดิมทับตัวเองเพื่อบังคับคำนวณ ไม่มีข้อมูลถูกแก้'
-    : 'สร้างแท็บ query ใหม่ทั้งแท็บ?\n\n' +
-      'ระบบจะล้างแถวเดิมในแท็บ query แล้วประกอบใหม่จากข้อมูลดิบ + Index ปัจจุบัน\n' +
-      'ถ้ามีใครแก้ค่าในแท็บ query ด้วยมือไว้ การแก้นั้นจะหายไป';
-  if (!confirm(warn)) return;
-
-  $('btnRebuild').disabled = true;
-  overlay(true, formula ? 'กำลังสั่งให้สูตรในแท็บ query คำนวณใหม่…'
-                        : 'กำลังสร้างตาราง query ใหม่จากข้อมูลดิบ + Index…');
-  google.script.run
-    .withSuccessHandler(function(res){
-      overlay(false); $('btnRebuild').disabled=false;
-      if (res && res.ok){
-        var n = (res.rebuilt == null) ? '-' : res.rebuilt;
-        toast(res.mode==='formula'
-          ? ('สั่งคำนวณสูตรใหม่แล้ว แท็บ query มี '+n+' แถว')
-          : ('สร้างตาราง query ใหม่แล้ว '+n+' แถว'), true);
-        if (res.unknownMerchants && res.unknownMerchants.length){
-          toast('ยังมี MERCHANT_ID ที่ไม่มีใน Index '+res.unknownMerchants.length+
-                ' รายการ: '+res.unknownMerchants.slice(0,5).join(', ')+
-                (res.unknownMerchants.length>5?' …':''));
-        }
-        if (S.src===k){
-          HEALTH = res.health || HEALTH;    // แบนเนอร์แดง/ปุ่ม export ต้องสะท้อนผลใหม่
-          renderHealth();
-          loadData();
-        }
-      } else if (res && res.reason==='cooldown'){
-        toast('เพิ่งสั่งไปเมื่อครู่ — รออีก '+(res.waitSec||0)+' วินาที');
-      } else {
-        toast((res && res.message) || 'สร้างตาราง query ใหม่ไม่สำเร็จ');
-      }
-    })
-    .withFailureHandler(function(e){
-      overlay(false); $('btnRebuild').disabled=false;
-      toast('สร้างตาราง query ใหม่ไม่สำเร็จ: '+(e&&e.message?e.message:e));
-    })
-    .startRebuild(S.pin, k);
-}
-
-/* ---------- Index editor (จุดเขียนจุดเดียว — admin) ---------- */
 function updateActionBtns(){
   var p = srcObj();
   /* ปุ่มสร้างตาราง query ใหม่ = เขียนชีต จึงเห็นเฉพาะผู้ดูแล และเห็นทุกแท็บ (ไม่ผูกกับแท็บที่เปิดอยู่) */
-  $('btnRebuild').style.display = (S.role==='admin' && p) ? '' : 'none';
   var adm = S.role==='admin' && S.tab==='index' && !!(p && p.indexEditable);
   $('btnIxEdit').style.display = (adm && !S.ixEdit) ? '' : 'none';
   $('btnIxSave').style.display = (adm && S.ixEdit) ? '' : 'none';
@@ -1435,7 +1378,7 @@ function renderSettings(cfg){
     '<div class="frow"><label>ชื่อแอป</label><input class="sin wide" id="setAppName" value="'+esc(cfg.appName||'')+'"></div>'+
     '<div class="frow"><label>คำอธิบาย</label><input class="sin wide" id="setAppDesc" value="'+esc(cfg.appDesc||'')+'" placeholder="เช่น Pattara Group · ฝ่ายบัญชี"></div>'+
     '<div class="frow"><label>ลิงก์คู่มือ</label><input class="sin wide" id="setManual" value="'+esc(cfg.manualUrl||'')+'" placeholder="https://docs.google.com/document/d/…"></div>'+
-    '<div class="hint">เว้นลิงก์คู่มือว่างไว้ เมนูคู่มือจะถูกซ่อน</div>'+
+    '<div class="hint">เว้นว่างไว้ = ใช้หน้าคู่มือที่มีอยู่ในตัวแอป ใส่ลิงก์เฉพาะตอนอยากชี้ไปเอกสารอื่น</div>'+
     '<div class="frow"><label>เวอร์ชัน</label><span class="rdonly">'+esc(cfg.appVersion||'')+'</span>'+
       '<span style="font-size:11.5px;color:var(--mut)">ระบบเติมให้อัตโนมัติ ไม่มีช่องให้กรอก</span></div>'+
     '<div class="savebar"><button class="btn pri withico" id="btnSaveBrand">'+ICO('save')+'<span>บันทึกป้ายแอป</span></button></div>'+
@@ -1644,7 +1587,6 @@ function init(){
 
   $('btnLoad').onclick=loadData;
   $('btnSync').onclick=startSyncFlow;
-  $('btnRebuild').onclick=startRebuildFlow;
   initRangePicker();
   $('btnLogout').onclick=logout;
   $('q').oninput=function(){ S.page=1; renderAll(); };

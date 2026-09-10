@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>คู่มือการใช้งาน — ระบบขึ้นเงินบัตรเครดิต EDC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#F6F4EF;--card:#fff;--ink:#20313B;--mut:#64758A;--line:#E4E0D6;
+  --teal:#0E6E5C;--tealsoft:#E4F1ED;--red:#B3261E;--brass:#A9843F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Sarabun','Noto Sans Thai',sans-serif;
+  font-size:15px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:820px;margin:0 auto;padding:26px 20px 70px}
+header{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 22px;
+  display:flex;gap:16px;align-items:center;margin-bottom:18px}
+.tile{width:64px;height:64px;border-radius:14px;background:var(--paper);flex:none;
+  display:flex;align-items:center;justify-content:center;color:var(--brass);overflow:hidden}
+.tile svg{width:38px;height:38px}
+.tile img{width:100%;height:100%;object-fit:contain}
+h1{margin:0;font-size:20px;font-weight:700}
+.sub{color:var(--mut);font-size:13px;margin-top:4px}
+nav.toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:22px}
+nav.toc b{font-size:14px}
+nav.toc ol{margin:8px 0 0;padding-left:22px}
+nav.toc a{color:var(--teal);text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:16px}
+h2{margin:0 0 10px;font-size:17px;color:var(--teal);scroll-margin-top:14px}
+h3{margin:18px 0 6px;font-size:15px}
+ol,ul{margin:8px 0;padding-left:22px}
+li{margin:5px 0}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:14px}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#FBFAF6;font-weight:600}
+code,.btnname{background:#F1F3F2;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13.5px}
+.btnname{font-weight:600;white-space:nowrap}
+.warn{background:#FFF3CD;border:1px solid #E6C34A;color:#7A5D00;border-radius:10px;padding:12px 14px;margin:12px 0;
+  display:flex;gap:9px;align-items:flex-start}
+.warn svg{width:18px;height:18px;flex:none;margin-top:3px}
+.note{background:var(--tealsoft);border:1px solid #C7E0D8;color:#0B5648;border-radius:10px;padding:12px 14px;margin:12px 0}
+footer{color:var(--mut);font-size:12.5px;text-align:center;margin-top:26px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="tile" id="tile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+  </div>
+  <div>
+    <h1 id="appName">คู่มือการใช้งาน — ระบบขึ้นเงินบัตรเครดิต EDC</h1>
+    <div class="sub">อ้างอิงเวอร์ชัน <b id="ver">-</b> · ปรับปรุงคู่มือล่าสุด <b id="upd">-</b></div>
+  </div>
+</header>
+
+<nav class="toc">
+  <b>หัวข้อในคู่มือ</b>
+  <ol>
+    <li><a href="#s1">แอปนี้ใช้ทำอะไร</a></li>
+    <li><a href="#s2">เข้าใช้งานยังไง</a></li>
+    <li><a href="#s3">งานประจำวัน</a></li>
+    <li><a href="#s4">งานที่ทำเป็นรอบ</a></li>
+    <li><a href="#s5">สำหรับผู้ดูแลระบบ</a></li>
+    <li><a href="#s6">เจอปัญหาแบบนี้ทำไง</a></li>
+    <li><a href="#s7">ติดต่อใคร</a></li>
+  </ol>
+</nav>
+
+<section>
+  <h2 id="s1">1. แอปนี้ใช้ทำอะไร</h2>
+  <p>ใช้ดูรายการที่ลูกค้ารูดบัตรเครดิตผ่านเครื่องรูดบัตรของแต่ละสาขา แล้วธนาคารโอนเงินเข้ามา
+  เดิมต้องเปิดไฟล์ที่ธนาคารส่งมาทางอีเมลทีละฉบับแล้วรวมเอง ตอนนี้ระบบดึงมารวมให้อัตโนมัติทุกวัน</p>
+  <p>คนที่ใช้คือ <b>ฝ่ายบัญชี</b> ใช้ตอนกระทบยอดเงินที่ธนาคารโอนเข้ามากับยอดขายของสาขา
+  และตอนต้องส่งไฟล์รายการให้บัญชี</p>
+  <p>ระบบรวมข้อมูลจาก 3 กลุ่ม เลือกดูทีละกลุ่มได้จากปุ่มรูปการ์ดด้านบนของหน้า</p>
+  <ul>
+    <li><b>K-Bank · wc_oil6 Amazon</b> — ร้านคาเฟ่อเมซอน</li>
+    <li><b>K-Bank · OIL 1/4/5/6 · TT/TK</b> — ปั๊มน้ำมันและสาขาในกลุ่ม OIL</li>
+    <li><b>BBL · OIL 1/4/5/6</b> — รายการฝั่งธนาคารกรุงเทพ</li>
+  </ul>
+</section>
+
+<section>
+  <h2 id="s2">2. เข้าใช้งานยังไง</h2>
+  <ol>
+    <li>เปิดลิงก์ของแอป (ขอจากผู้ดูแลระบบ หรือกดจากหน้ารวมแอปของกลุ่ม)</li>
+    <li>จะเจอหน้าเข้าใช้งาน มีปุ่มเขียวใหญ่ <span class="btnname">ผู้ใช้งานทั่วไป</span> — กดปุ่มนี้เข้าได้เลย ไม่ต้องใส่รหัส</li>
+    <li>ถ้าเป็นผู้ดูแลระบบ ให้ใส่ตัวเลข 6 หลักในช่องใต้หัวข้อ "ผู้ดูแลระบบ"
+      <b>พิมพ์ครบ 6 หลักระบบจะเข้าให้เลย ไม่ต้องกดปุ่มอะไร</b></li>
+  </ol>
+  <p>ใส่รหัสผิด การ์ดจะสั่นแล้วขึ้นข้อความสีแดงใต้ช่อง ลองใหม่ได้ทันที
+  ถ้าผิดติดกัน 8 ครั้ง ระบบจะพักการเข้าใช้งาน 15 นาที</p>
+  <h3>ผู้ใช้ทั่วไปกับผู้ดูแลระบบ ต่างกันตรงไหน</h3>
+  <table>
+    <tr><th>ทำอะไรได้</th><th>ผู้ใช้งานทั่วไป</th><th>ผู้ดูแลระบบ</th></tr>
+    <tr><td>ดู ค้นหา กรองข้อมูล</td><td>ได้</td><td>ได้</td></tr>
+    <tr><td>ดาวน์โหลด CSV · Excel · PDF</td><td>ได้</td><td>ได้</td></tr>
+    <tr><td>กดดึงข้อมูลใหม่จากอีเมลธนาคาร</td><td>ได้</td><td>ได้</td></tr>
+    <tr><td>เมนู "ตั้งค่าระบบ"</td><td><b>มองไม่เห็น</b></td><td>เห็นและแก้ได้</td></tr>
+    <tr><td>แก้ตารางจับคู่รหัสสาขา</td><td>ไม่ได้</td><td>ได้</td></tr>
+  </table>
+  <p>ผู้ใช้ทั่วไปจะเห็น<b>รูปกุญแจสีทอง</b>เกาะอยู่ท้ายชื่อเมนูที่กำลังเปิดอยู่
+  แปลว่าหน้านั้นดูและดาวน์โหลดได้ แต่แก้ไขข้อมูลไม่ได้</p>
+</section>
+
+<section>
+  <h2 id="s3">3. งานประจำวัน</h2>
+  <h3>ดูรายการของช่วงวันที่ต้องการ</h3>
+  <ol>
+    <li>กดการ์ดกลุ่มที่ต้องการดูด้านบนสุด (Amazon / OIL / BBL)</li>
+    <li>กดปุ่มวันที่ที่มีรูปปฏิทิน จะมีปฏิทินเด้งขึ้นมา
+      <ul>
+        <li>จิ้มวันแรก = วันเริ่ม · จิ้มอีกครั้ง = วันสิ้นสุด</li>
+        <li>อยากดูวันเดียว จิ้มวันเดิมซ้ำ</li>
+        <li>มีปุ่มลัดด้านบน <span class="btnname">วันนี้</span> <span class="btnname">7 วัน</span>
+          <span class="btnname">เดือนนี้</span> <span class="btnname">เดือนก่อน</span> <span class="btnname">ทั้งหมด</span></li>
+      </ul>
+    </li>
+    <li>กด <span class="btnname">ใช้ช่วงนี้</span></li>
+    <li>กด <span class="btnname">ดึงข้อมูล</span></li>
+  </ol>
+  <p>ตั้งต้นระบบเลือกให้เป็น <b>7 วันย้อนหลังนับรวมวันนี้</b></p>
+
+  <h3>ค้นหาและกรอง</h3>
+  <ul>
+    <li>ช่อง <b>ค้นหาทุกฟิลด์</b> พิมพ์อะไรก็ได้ที่อยู่ในตาราง เช่น เลขใบกำกับ หรือรหัสสาขา</li>
+    <li>ช่อง <b>ทุกสาขา</b> เลือกดูเฉพาะสาขาเดียว</li>
+    <li>กดที่<b>หัวคอลัมน์</b>เพื่อเรียงลำดับ กดซ้ำเพื่อสลับมาก-น้อย</li>
+  </ul>
+
+  <h3>ดึงข้อมูลใหม่จากอีเมลธนาคาร</h3>
+  <p>ปกติระบบดึงให้เองทุกวันอัตโนมัติ ถ้าอยากได้ข้อมูลสด ๆ ตอนนั้นเลย ให้กดปุ่ม
+  <span class="btnname">Sync ข้อมูลล่าสุด</span> ที่อยู่ใต้ช่องค้นหา</p>
+  <ul>
+    <li>ระบบจะไปอ่านอีเมลจากธนาคารย้อนหลัง 7 วัน แล้วเติมเฉพาะรายการที่ยังไม่มี</li>
+    <li>รายการที่มีอยู่แล้วจะไม่ซ้ำ ไม่ต้องกลัวกดหลายครั้ง</li>
+    <li>กดถี่เกินไประบบจะขอให้รอสักครู่ก่อน</li>
+  </ul>
+
+  <h3>ดาวน์โหลดไฟล์</h3>
+  <p>ปุ่ม <span class="btnname">CSV</span> <span class="btnname">Excel</span> <span class="btnname">PDF</span>
+  อยู่มุมขวาบน แถวเดียวกับช่องค้นหา — ได้เฉพาะรายการที่กรองอยู่บนจอตอนนั้น</p>
+  <div class="warn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div><b>ปุ่มดาวน์โหลดกดไม่ได้</b> แปลว่าข้อมูลยังไม่ครบ — มีรายการที่ยังจับคู่รหัสสาขาไม่ได้
+    ระบบตั้งใจปิดไว้ กันไม่ให้เอาไฟล์ที่ยอดไม่ครบไปใช้ต่อ ดูวิธีแก้ในหัวข้อที่ 6</div>
+  </div>
+</section>
+
+<section>
+  <h2 id="s4">4. งานที่ทำเป็นรอบ</h2>
+  <h3>กระทบยอดสิ้นเดือน</h3>
+  <ol>
+    <li>เลือกการ์ดกลุ่มที่ต้องการ</li>
+    <li>กดปุ่มวันที่ แล้วกดปุ่มลัด <span class="btnname">เดือนก่อน</span> แล้วกด <span class="btnname">ใช้ช่วงนี้</span></li>
+    <li>กด <span class="btnname">ดึงข้อมูล</span></li>
+    <li>ดูการ์ดสรุปยอดด้านบนตาราง — รวมยอดขาย รวมค่าใช้จ่าย และยอดสุทธิที่ธนาคารโอนเข้า</li>
+    <li>อยากดูแยกเป็นวันหรือเป็นสาขา ให้กดปุ่มสลับมุมมองเหนือตาราง</li>
+    <li>กด <span class="btnname">Excel</span> เพื่อเอาไฟล์ไปทำงานต่อ</li>
+  </ol>
+  <div class="note">ทำครบทั้ง 3 กลุ่ม โดยกดเปลี่ยนการ์ดด้านบนแล้วทำซ้ำขั้นตอนเดิม</div>
+</section>
+
+<section>
+  <h2 id="s5">5. สำหรับผู้ดูแลระบบ</h2>
+  <p>กดที่ชื่อสิทธิ์มุมล่างซ้าย แล้วเลือก <span class="btnname">ตั้งค่าระบบ</span>
+  หน้าตั้งค่ามี 3 แท็บ <b>ปุ่มบันทึกแยกกันคนละแท็บ</b> แก้แท็บไหนต้องกดบันทึกของแท็บนั้น</p>
+
+  <h3>แท็บ "ป้ายแอป"</h3>
+  <ul>
+    <li><b>ไอคอน</b> — กด <span class="btnname">เลือกไฟล์ไอคอน</span> เลือกรูปอะไรก็ได้ ระบบย่อให้เป็นขนาดที่ถูกต้องเอง</li>
+    <li><b>ชื่อแอป</b> และ <b>คำอธิบาย</b> — ที่แสดงในแถบซ้ายและหน้าเข้าใช้งาน</li>
+    <li><b>ลิงก์คู่มือ</b> — เว้นว่างไว้ ระบบจะใช้คู่มือหน้านี้ให้เอง ใส่ลิงก์เฉพาะตอนอยากชี้ไปเอกสารอื่น</li>
+    <li><b>เวอร์ชัน</b> — ระบบเติมให้เอง ไม่มีช่องให้กรอก</li>
+  </ul>
+
+  <h3>แท็บ "การเชื่อมต่อ"</h3>
+  <p>ที่อยู่และรหัสลับสำหรับให้ปุ่ม "Sync ข้อมูลล่าสุด" ของแต่ละกลุ่มทำงาน</p>
+  <ul>
+    <li>รหัสลับจะแสดงแบบปิดบังไว้ เช่น <code>oil……sync</code> ดูค่าเต็มไม่ได้</li>
+    <li>อยากเปลี่ยน กด <span class="btnname">เปลี่ยน Token</span> แล้วพิมพ์ค่าใหม่ · ปล่อยว่าง = ไม่เปลี่ยนของเดิม</li>
+    <li>กด <span class="btnname">ทดสอบการเชื่อมต่อ</span> เพื่อดูว่าปลายทางยังใช้ได้ ระบบจะบอกเป็นข้อความว่าเจออะไร</li>
+  </ul>
+
+  <h3>แท็บ "เปลี่ยน PIN"</h3>
+  <p>ใส่ตัวเลข 6 หลักสองช่องให้ตรงกัน แล้วกด <span class="btnname">บันทึก PIN ใหม่</span>
+  เปลี่ยนแล้วใช้งานต่อได้เลยไม่ต้องออกจากระบบ</p>
+  <div class="warn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div>รหัสนี้เก็บแบบเข้ารหัส <b>เปิดดูย้อนหลังไม่ได้</b> ถ้าลืมต้องให้คนดูแลระบบเข้าไปสั่งรีเซ็ตให้</div>
+  </div>
+
+  <h3>ตารางจับคู่รหัสสาขา (Index)</h3>
+  <p>เป็นตารางบอกว่าเครื่องรูดบัตรเครื่องไหนเป็นของสาขาอะไร ถ้าไม่มีในตารางนี้
+  รายการจะขึ้นว่ายังจับคู่ไม่ได้ และปุ่มดาวน์โหลดจะถูกปิด</p>
+  <ol>
+    <li>เลือกการ์ดกลุ่ม <b>K-Bank · wc_oil6 Amazon</b> แล้วเลือกมุมมอง Index</li>
+    <li>กด <span class="btnname">แก้ไข Index</span></li>
+    <li>เติมรหัสสาขาให้ครบ หรือกด <span class="btnname">＋ เพิ่มแถว</span> ถ้ามีเครื่องใหม่</li>
+    <li>กด <span class="btnname">บันทึก Index</span></li>
+  </ol>
+  <div class="warn">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div>กดบันทึกทีนึงระบบเขียนตารางนี้ใหม่ทั้งตาราง <b>ต่อให้ไม่ได้แก้อะไรเลย</b>
+    ถ้าเผลอกดแล้วข้อมูลเพี้ยน ให้เปิดไฟล์ตารางแล้วใช้ ไฟล์ → ประวัติเวอร์ชัน ย้อนกลับได้</div>
+  </div>
+  <p>อีกสองกลุ่ม (OIL และ BBL) แก้ที่นี่ไม่ได้ ต้องไปแก้ที่ไฟล์ต้นทางโดยตรง</p>
+</section>
+
+<section>
+  <h2 id="s6">6. เจอปัญหาแบบนี้ทำไง</h2>
+  <table>
+    <tr><th>อาการ</th><th>สาเหตุ</th><th>วิธีแก้</th></tr>
+    <tr>
+      <td>ปุ่ม CSV / Excel / PDF กดไม่ได้ และมีแถบสีแดงบอกว่าข้อมูลไม่ครบ</td>
+      <td>มีเครื่องรูดบัตรที่ยังไม่ได้จับคู่รหัสสาขา</td>
+      <td>ผู้ดูแลระบบเติมในตารางจับคู่รหัสสาขา (หัวข้อ 5) แล้วกด <span class="btnname">ตรวจซ้ำ</span></td>
+    </tr>
+    <tr>
+      <td>ตารางว่าง ขึ้นว่าไม่พบรายการในช่วงที่เลือก</td>
+      <td>ช่วงวันที่ที่กรองอยู่ไม่มีข้อมูล</td>
+      <td>กดปุ่ม <span class="btnname">ดูทุกช่วงเวลา</span> ที่อยู่ใต้ข้อความนั้น</td>
+    </tr>
+    <tr>
+      <td>ข้อมูลไม่อัปเดต ทั้งที่ธนาคารส่งอีเมลมาแล้ว</td>
+      <td>ยังไม่ถึงรอบดึงอัตโนมัติ</td>
+      <td>กด <span class="btnname">Sync ข้อมูลล่าสุด</span></td>
+    </tr>
+    <tr>
+      <td>กด Sync แล้วขึ้นว่าเรียกไม่สำเร็จ</td>
+      <td>ที่อยู่หรือรหัสลับของกลุ่มนั้นไม่ถูกต้อง</td>
+      <td>ผู้ดูแลระบบเข้าแท็บ "การเชื่อมต่อ" แล้วกด <span class="btnname">ทดสอบการเชื่อมต่อ</span> ระบบจะบอกว่าติดตรงไหน</td>
+    </tr>
+    <tr>
+      <td>กด Sync แล้วสำเร็จ แต่ได้ 0 รายการทุกครั้ง</td>
+      <td>ระบบไปอ่านอีเมลผิดกล่อง</td>
+      <td>แจ้งผู้ดูแลระบบ ต้องให้เจ้าของกล่องอีเมลของกลุ่มนั้นเป็นคนตั้งค่าใหม่</td>
+    </tr>
+    <tr>
+      <td>เปิดไฟล์ตารางแล้วเห็นข้อมูลเก่าค้างอยู่บรรทัดบน ๆ</td>
+      <td>ตารางเรียงตามลำดับที่ระบบเติมเข้าไป ไม่ได้เรียงตามวันที่</td>
+      <td>ข้อมูลใหม่อยู่<b>ล่างสุด</b> กดปุ่ม Ctrl กับ End พร้อมกันเพื่อกระโดดไปบรรทัดสุดท้าย</td>
+    </tr>
+    <tr>
+      <td>ใส่รหัสผู้ดูแลถูกแล้วแต่เข้าไม่ได้</td>
+      <td>ใส่ผิดติดกันหลายครั้งจนระบบพักไว้</td>
+      <td>รอ 15 นาทีแล้วลองใหม่</td>
+    </tr>
+  </table>
+</section>
+
+<section>
+  <h2 id="s7">7. ติดต่อใคร</h2>
+  <p>ผู้ดูแลระบบของแอปนี้คือ <b>ฝ่ายบัญชี กลุ่มภัทธารา</b></p>
+  <p>แจ้งปัญหาให้บอกด้วยว่า <b>อยู่หน้าไหน กดปุ่มอะไร แล้วขึ้นข้อความว่าอะไร</b>
+  และช่วงวันที่ที่เลือกอยู่ตอนนั้น จะช่วยให้ตามเรื่องได้เร็วขึ้นมาก</p>
+</section>
+
+<footer>ระบบขึ้นเงินบัตรเครดิต EDC · กลุ่มภัทธารา</footer>
+</div>
+
+<script>var MANUAL_BOOT = <?!= boot ?>;</script>
+<script>
+(function () {
+  var B = window.MANUAL_BOOT || {};
+  if (B.appName) {
+    document.getElementById('appName').textContent = 'คู่มือการใช้งาน — ' + B.appName;
+    document.title = 'คู่มือการใช้งาน — ' + B.appName;
+  }
+  document.getElementById('ver').textContent = B.appVersion || '-';
+  document.getElementById('upd').textContent = B.today || '-';
+  if (B.appIcon) document.getElementById('tile').innerHTML = '<img src="' + B.appIcon + '" alt="">';
+})();
+</script>
+</body>
+</html>
