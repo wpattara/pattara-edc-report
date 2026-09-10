@@ -16,7 +16,7 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '1.10.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '1.11.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
                                  // 1.8.0 = สั่ง rebuild แท็บ query จากหน้าเว็บได้ (ผู้ดูแล)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 
@@ -137,6 +137,7 @@ function buildBootstrap_() {
     manualUrl: PropertiesService.getScriptProperties().getProperty('APP_MANUAL_URL') || '',
     appName: PropertiesService.getScriptProperties().getProperty('APP_NAME') || 'ระบบขึ้นเงินบัตรเครดิต',
     appDesc: PropertiesService.getScriptProperties().getProperty('APP_DESC') || '',
+    appIcon: getAppIcon_(),
     user: getUserEmail_(),
     maxRows: MAX_ROWS,
     sources: SOURCES.map(function (s) {
@@ -641,6 +642,44 @@ function lastSyncInfo_(sourceKey) {
 /* ====================== Settings (admin) ====================== */
 
 /* หน้า เดียวเห็น config ของทุกชิป — ไม่ผูกกับชิปที่เลือกอยู่ */
+/* ---------- ไอคอนป้ายแอป ----------
+   Script Property เก็บได้ 9KB ต่อค่า ซึ่งไม่พอกับ data URI ของรูป
+   จึงหั่นเก็บเป็นก้อนละ 8000 ตัวอักษร APP_ICON_0..n แล้วต่อกลับตอนอ่าน
+   (โควตารวมของ store คือ 500KB — ไอคอน 96x96 ใช้ไม่ถึง 10% ) */
+var ICON_CHUNK = 8000;
+var ICON_MAX_CHARS = 200000;     // ~150KB หลังถอด base64 — เผื่อไว้มากแล้วสำหรับ 96x96
+
+function getAppIcon_() {
+  var props = PropertiesService.getScriptProperties();
+  var cnt = Number(props.getProperty('APP_ICON_N') || 0);
+  if (!cnt) return '';
+  var parts = [];
+  for (var i = 0; i < cnt; i++) parts.push(props.getProperty('APP_ICON_' + i) || '');
+  return parts.join('');
+}
+
+function setAppIcon_(dataUri) {
+  var props = PropertiesService.getScriptProperties();
+  var old = Number(props.getProperty('APP_ICON_N') || 0);
+  for (var i = 0; i < old; i++) props.deleteProperty('APP_ICON_' + i);   // ล้างของเดิมก่อนเสมอ
+
+  var v = String(dataUri || '').trim();
+  if (!v) { props.deleteProperty('APP_ICON_N'); return 0; }
+  if (!/^data:image\/(png|jpeg|webp);base64,/i.test(v)) {
+    throw new Error('ไฟล์ไอคอนต้องเป็นรูปภาพ (PNG / JPEG / WebP)');
+  }
+  if (v.length > ICON_MAX_CHARS) {
+    throw new Error('ไฟล์ไอคอนใหญ่เกินไป — ลองใช้รูปที่เรียบง่ายกว่านี้');
+  }
+  var k = 0;
+  for (var pos = 0; pos < v.length; pos += ICON_CHUNK) {
+    props.setProperty('APP_ICON_' + k, v.substr(pos, ICON_CHUNK));
+    k++;
+  }
+  props.setProperty('APP_ICON_N', String(k));
+  return k;
+}
+
 /** ปิดบัง token ก่อนส่งออกไปหน้าเว็บ — pattara-setting ข้อ 5 ห้ามคืนค่าจริงเด็ดขาด */
 function maskToken_(t) {
   t = String(t || '');
@@ -657,6 +696,7 @@ function getSettings(pin) {
     manualUrl: props.getProperty('APP_MANUAL_URL') || '',
     appName: props.getProperty('APP_NAME') || 'ระบบขึ้นเงินบัตรเครดิต',
     appDesc: props.getProperty('APP_DESC') || '',
+    appIcon: getAppIcon_(),
     appVersion: appVersionLabel_(),
     sources: SOURCES.map(function (s) {
       var tk = props.getProperty('SYNC_TOKEN_' + s.key) || '';
@@ -724,8 +764,11 @@ function saveSettings(pin, obj) {
       if (mu && !/^https:\/\//i.test(mu)) throw new Error('ลิงก์คู่มือต้องขึ้นต้นด้วย https://');
       props.setProperty('APP_MANUAL_URL', mu);
     }
-    log_('บันทึกป้ายแอป', 'ชื่อ/คำอธิบาย/ลิงก์คู่มือ');
-    return { ok: true, section: 'brand' };
+    var iconNote = '';
+    if (obj.iconAction === 'set')    { var k = setAppIcon_(obj.appIcon); iconNote = ' · เปลี่ยนไอคอน (' + k + ' ก้อน)'; }
+    else if (obj.iconAction === 'clear') { setAppIcon_(''); iconNote = ' · ลบไอคอน'; }
+    log_('บันทึกป้ายแอป', 'ชื่อ/คำอธิบาย/ลิงก์คู่มือ' + iconNote);
+    return { ok: true, section: 'brand', appIcon: getAppIcon_() };
   }
 
   if (section === 'conn') {

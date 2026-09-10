@@ -236,6 +236,12 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 .testout{font-size:12.5px;line-height:1.5;margin-top:8px}
 .testout.ok{color:var(--teal)} .testout.bad{color:var(--red)}
 .rdonly{font-family:ui-monospace,monospace;font-size:13px;color:var(--mut)}
+.icoprev{width:96px;height:96px;border-radius:18px;background:var(--paper);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;color:var(--brass)}
+.icoprev img{width:100%;height:100%;object-fit:contain}
+.icoprev svg{width:58px;height:58px}
+.icobox{display:flex;gap:14px;align-items:flex-start;margin:6px 0 10px}
+.sb-tile img,.app-tile img{width:100%;height:100%;object-fit:contain}
 .sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
 .sec h3{margin:0 0 10px;font-size:15px}
 .sec .hint{font-size:12px;color:var(--mut);margin:-6px 0 10px}
@@ -335,7 +341,7 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
       <svg class="ico-chev" aria-hidden="true"><use href="#i-chevron-left"/></svg>
     </button>
     <div class="brand">
-      <div class="sb-tile"><svg aria-hidden="true"><use href="#i-credit-card"/></svg></div>
+      <div class="sb-tile" id="sbTile"><svg aria-hidden="true"><use href="#i-credit-card"/></svg></div>
       <div class="sb-meta">
         <div class="sb-name" id="appName">ระบบขึ้นเงินบัตรเครดิต</div>
         <div class="sb-ver" id="appVer"></div>
@@ -363,8 +369,8 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
   <main>
     <div id="loginScreen">
       <div class="logincard" id="loginCard">
-        <div class="app-tile"><svg aria-hidden="true"><use href="#i-lock"/></svg></div>
-        <h2 style="margin:14px 0 0;font-size:18px">ระบบขึ้นเงินบัตรเครดิต EDC</h2>
+        <div class="app-tile" id="loginTile"><svg aria-hidden="true"><use href="#i-lock"/></svg></div>
+        <h2 style="margin:14px 0 0;font-size:18px" id="loginTitle">ระบบขึ้นเงินบัตรเครดิต EDC</h2>
         <button class="btn pri" id="btnEnterUser"
           style="width:100%;padding:11px;font-size:14.5px;margin-top:24px">ผู้ใช้งานทั่วไป</button>
         <div class="ordiv"><span><svg aria-hidden="true"><use href="#i-wrench"/></svg>ผู้ดูแลระบบ</span></div>
@@ -655,6 +661,18 @@ var DateRange = (function () {
 function ICO(name){ return '<svg class="ico" aria-hidden="true"><use href="#i-'+name+'"/></svg>'; }
 
 /* ---------- ชื่อแอปต้องอยู่บรรทัดเดียว ย่อขนาดแทนการตัดบรรทัด ---------- */
+/** เอาไอคอนกับชื่อจาก bootstrap ไปแปะทั้งแถบซ้ายและหน้าเข้าใช้งาน */
+function applyBrand(){
+  var name = BOOTSTRAP.appName || 'ระบบขึ้นเงินบัตรเครดิต';
+  $('appName').textContent = name;
+  var t = $('loginTitle'); if (t) t.textContent = name;
+  var ic = BOOTSTRAP.appIcon || '';
+  var sbFallback = '<svg aria-hidden="true"><use href="#i-credit-card"/></svg>';
+  var lgFallback = '<svg aria-hidden="true"><use href="#i-lock"/></svg>';
+  $('sbTile').innerHTML    = ic ? '<img src="'+esc(ic)+'" alt="">' : sbFallback;
+  $('loginTile').innerHTML = ic ? '<img src="'+esc(ic)+'" alt="">' : lgFallback;
+}
+
 function fitAppName(){
   var el = $('appName'); if (!el || !el.offsetParent) return;   // แถบย่ออยู่ วัดไม่ได้
   var box = el.parentNode; if (!box || !box.clientWidth) return;
@@ -1396,8 +1414,24 @@ function renderSettings(cfg){
   SET.cfg = cfg; SET.tab = 'A'; SET.dirty = {A:false,C:false,P:false};
 
   /* ---- แท็บ A: ป้ายแอป ---- */
+  var curIco = cfg.appIcon || '';
   var A = '<div class="sec"><h3>ป้ายแอป</h3>'+
-    '<div class="hint">ชื่อและคำอธิบายที่แสดงในแถบซ้ายและหน้าเข้าใช้งาน</div>'+
+    '<div class="hint">ไอคอน ชื่อ และคำอธิบายที่แสดงในแถบซ้ายและหน้าเข้าใช้งาน</div>'+
+    '<div class="icobox">'+
+      '<div class="icoprev" id="icoPrev">'+(curIco
+        ? '<img src="'+esc(curIco)+'" alt="">'
+        : '<svg aria-hidden="true"><use href="#i-credit-card"/></svg>')+'</div>'+
+      '<div>'+
+        '<div style="font-size:12.5px;color:var(--mut);line-height:1.6">ไฟล์ PNG / JPEG / WebP<br>'+
+        'ระบบย่อให้เป็น 96×96 อัตโนมัติ ไม่ต้องเตรียมขนาดมาก่อน</div>'+
+        '<div style="margin-top:9px;display:flex;gap:8px;flex-wrap:wrap">'+
+          '<button class="mini" id="btnIcoPick">เลือกไฟล์ไอคอน</button>'+
+          '<button class="mini danger'+(curIco?'':' hidden')+'" id="btnIcoClear">ลบไอคอน</button>'+
+        '</div>'+
+        '<div id="icoNote" style="font-size:12px;color:var(--mut);margin-top:7px"></div>'+
+        '<input type="file" id="icoFile" accept="image/png,image/jpeg,image/webp" style="display:none">'+
+      '</div>'+
+    '</div>'+
     '<div class="frow"><label>ชื่อแอป</label><input class="sin wide" id="setAppName" value="'+esc(cfg.appName||'')+'"></div>'+
     '<div class="frow"><label>คำอธิบาย</label><input class="sin wide" id="setAppDesc" value="'+esc(cfg.appDesc||'')+'" placeholder="เช่น Pattara Group · ฝ่ายบัญชี"></div>'+
     '<div class="frow"><label>ลิงก์คู่มือ</label><input class="sin wide" id="setManual" value="'+esc(cfg.manualUrl||'')+'" placeholder="https://docs.google.com/document/d/…"></div>'+
@@ -1467,6 +1501,50 @@ function renderSettings(cfg){
   ['setAppName','setAppDesc','setManual'].forEach(function(id){ $(id).oninput = function(){ markDirty('A'); }; });
   ['setPin','setPin2'].forEach(function(id){ $(id).oninput = function(){ markDirty('P'); }; });
 
+  /* ---- ไอคอน: เลือกไฟล์ → ย่อเป็น 96x96 บน canvas → เก็บเป็น data URI ---- */
+  SET.icon = { action:'', data: curIco };
+  $('btnIcoPick').onclick = function(){ $('icoFile').click(); };
+  $('icoFile').onchange = function(){
+    var f = this.files && this.files[0];
+    this.value = '';
+    if (!f) return;
+    if (!/^image\/(png|jpeg|webp)$/.test(f.type)){ toast('รองรับเฉพาะ PNG / JPEG / WebP'); return; }
+    $('icoNote').textContent = 'กำลังย่อรูป…';
+    var rd = new FileReader();
+    rd.onerror = function(){ $('icoNote').textContent = 'อ่านไฟล์ไม่สำเร็จ'; };
+    rd.onload = function(){
+      var img = new Image();
+      img.onerror = function(){ $('icoNote').textContent = 'ไฟล์นี้ไม่ใช่รูปที่เปิดได้'; };
+      img.onload = function(){
+        var c = document.createElement('canvas'); c.width = 96; c.height = 96;
+        var g = c.getContext('2d');
+        /* ใส่ให้พอดีกรอบโดยไม่บิดสัดส่วน */
+        var r = Math.min(96 / img.width, 96 / img.height);
+        var w = Math.round(img.width * r), h = Math.round(img.height * r);
+        g.drawImage(img, Math.round((96-w)/2), Math.round((96-h)/2), w, h);
+        var out = c.toDataURL('image/png');
+        if (out.length > 120000){                 /* รูปซับซ้อน PNG ใหญ่เกิน → ใช้ JPEG ไล่คุณภาพลง */
+          var q = 0.9;
+          while (q >= 0.5){ out = c.toDataURL('image/jpeg', q); if (out.length <= 120000) break; q -= 0.1; }
+        }
+        SET.icon = { action:'set', data: out };
+        $('icoPrev').innerHTML = '<img src="'+esc(out)+'" alt="">';
+        $('btnIcoClear').classList.remove('hidden');
+        $('icoNote').textContent = 'พร้อมบันทึก — ขนาดหลังย่อ ' + Math.round(out.length/1024) + ' KB';
+        markDirty('A');
+      };
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  };
+  $('btnIcoClear').onclick = function(){
+    SET.icon = { action:'clear', data:'' };
+    $('icoPrev').innerHTML = '<svg aria-hidden="true"><use href="#i-credit-card"/></svg>';
+    $('btnIcoClear').classList.add('hidden');
+    $('icoNote').textContent = 'จะลบไอคอนเมื่อกดบันทึก';
+    markDirty('A');
+  };
+
   $('btnSaveBrand').onclick = saveBrand;
   $('btnSavePin').onclick = savePin;
 
@@ -1502,12 +1580,15 @@ function saveBrand(){
       toast('บันทึกป้ายแอปแล้ว', true);
       BOOTSTRAP.manualUrl = $('setManual').value.trim();
       BOOTSTRAP.appName = $('setAppName').value.trim();
-      $('appName').textContent = BOOTSTRAP.appName;
-      renderNav(); fitAppName();
+      if (SET.icon && SET.icon.action === 'set')   BOOTSTRAP.appIcon = SET.icon.data;
+      if (SET.icon && SET.icon.action === 'clear') BOOTSTRAP.appIcon = '';
+      SET.icon = { action:'', data: BOOTSTRAP.appIcon || '' };
+      applyBrand(); renderNav(); fitAppName();
     })
     .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
     .saveSettings(S.pin, { section:'brand',
-      appName: $('setAppName').value, appDesc: $('setAppDesc').value, manualUrl: $('setManual').value });
+      appName: $('setAppName').value, appDesc: $('setAppDesc').value, manualUrl: $('setManual').value,
+      iconAction: (SET.icon && SET.icon.action) || '', appIcon: (SET.icon && SET.icon.data) || '' });
 }
 
 function saveConn(key){
@@ -1596,6 +1677,7 @@ function init(){
 
   initSidebar();
   initUserMenu();
+  applyBrand();
   renderNav();
   renderSyncInfo();
   showScreen('login');
