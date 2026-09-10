@@ -16,7 +16,7 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '1.8.1';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '1.8.2';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
                                  // 1.8.0 = สั่ง rebuild แท็บ query จากหน้าเว็บได้ (ผู้ดูแล)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 
@@ -470,7 +470,14 @@ function saveIndexRows(pin, sourceKey, rows) {
     if (last > 1) sh.getRange(2, 1, last - 1, width).clearContent();
     if (incoming.length) {
       var out = incoming.map(function (r, ix) { return base ? [ix + 1].concat(r) : r.slice(); });
-      sh.getRange(2, 1, out.length, width).setValues(out);
+      var rng = sh.getRange(2, 1, out.length, width);
+      /* บังคับทั้งบล็อกเป็น "ข้อความล้วน" ก่อนเขียน — สำคัญมาก
+         ถ้าปล่อยเซลล์เป็นรูปแบบ "อัตโนมัติ" Sheets จะแปลง MERCHANT_ID 15 หลัก
+         จากข้อความเป็นตัวเลข แล้ว VLOOKUP ที่ชีตดิบใช้เทียบจะไม่ตรง
+         → คอลัมน์ BC ว่างทั้งแผ่น ปุ่ม Export โดนล็อก (เกิดจริงมาแล้ว 10 ก.ย. 2569)
+         คอลัมน์ "สาขา" ก็โดนด้วย — "003" เคยกลายเป็น 3 มาแล้ว */
+      rng.setNumberFormat('@');
+      rng.setValues(out);
     }
 
     log_('แก้ไข Index (' + src.key + ')', diffIndex_(before, incoming));
