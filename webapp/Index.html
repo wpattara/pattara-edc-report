@@ -3,35 +3,87 @@
 <head>
 <meta charset="utf-8">
 <base target="_blank">
+<link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#F6F4EF; --card:#FFFFFF; --ink:#20313B; --mut:#64758A;
   --line:#E4E0D6; --teal:#0E6E5C; --tealsoft:#E4F1ED; --red:#B3261E;
+  --brass:#A9843F; --gold:#D9B44A;
+  --sbbg:#0F3D36; --sbtext:#DCE9E5; --sbmut:#8FB0A8;
 }
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{font-family:'Sarabun',sans-serif;background:var(--paper);color:var(--ink);font-size:14px}
 #app{display:flex;min-height:100vh}
 
-/* ---------- sidebar ---------- */
-aside{width:230px;flex:0 0 230px;background:var(--card);border-right:1px solid var(--line);
-  display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
-.brand{padding:18px 16px 14px;border-bottom:1px solid var(--line)}
-.brand h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.2px}
-.brand small{color:var(--mut)}
-.badge-ro{display:inline-flex;align-items:center;gap:5px;margin-top:8px;font-size:11.5px;font-weight:600;
-  color:var(--teal);background:var(--tealsoft);border-radius:999px;padding:3px 10px}
-nav{padding:10px 8px;flex:1}
-.navlab{font-size:11px;color:var(--mut);letter-spacing:.6px;margin:10px 8px 4px}
-.navitem{display:block;width:100%;text-align:left;border:0;background:none;cursor:pointer;
-  font:inherit;font-weight:500;color:var(--ink);padding:10px 12px;border-radius:8px;margin:2px 0;
-  border-left:3px solid transparent}
-.navitem:hover{background:#F2F0E9}
-.navitem.on{background:var(--tealsoft);color:var(--teal);border-left-color:var(--teal);font-weight:600}
-.navdiv{border-top:1px solid var(--line);margin:10px 6px}
-.userbox{border-top:1px solid var(--line);padding:12px 16px;font-size:12px;color:var(--mut);word-break:break-all}
+/* ---------- sidebar (มาตรฐานกลุ่ม: พื้นเข้ม · ย่อได้ · เมนูผู้ใช้ก้นแถบ) ---------- */
+aside{position:relative;width:236px;flex:0 0 236px;background:var(--sbbg);color:var(--sbtext);
+  display:flex;flex-direction:column;top:0;height:100vh;transition:width .15s,flex-basis .15s}
+@media (max-width:1366px){aside{width:212px;flex-basis:212px}}
+aside.mini{width:56px;flex-basis:56px}
+
+/* ปุ่มย่อ/ขยาย — วงกลมลอยคร่อมขอบขวา ระดับเดียวกับชื่อแอป */
+.sb-toggle{position:absolute;top:17px;right:-13px;z-index:6;width:26px;height:26px;border-radius:50%;
+  background:#E4E8E7;border:1px solid #B9C4C1;color:#12211E;padding:0 0 0 1px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:.15s}
+.sb-toggle .ico-chev{width:13px;height:13px;transition:transform .15s}
+aside.mini .sb-toggle .ico-chev{transform:rotate(180deg)}
+.sb-toggle:hover{background:#fff;color:#000;border-color:var(--brass)}
+
+.brand{display:flex;align-items:center;gap:10px;padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.10)}
+.sb-tile{width:32px;height:32px;border-radius:8px;background:var(--gold);color:#3B2A00;flex:none;
+  display:flex;align-items:center;justify-content:center}
+.sb-tile svg{width:22px;height:22px}
+.sb-meta{min-width:0;flex:1}
+.sb-name{font-size:13.5px;font-weight:600;color:#fff;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sb-ver{font-size:10.5px;color:var(--sbmut);margin-top:2px;white-space:nowrap}
+
+nav{padding:10px 8px;flex:1;overflow-y:auto}
+.navlab{font-size:11px;color:#7FA096;letter-spacing:.6px;margin:10px 8px 4px}
+.navitem{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:none;
+  cursor:pointer;font:inherit;font-weight:500;color:var(--sbtext);padding:10px 11px;border-radius:8px;
+  margin:2px 0;border-left:3px solid transparent}
+.navitem:hover{background:rgba(255,255,255,.07)}
+.navitem.on{background:rgba(255,255,255,.13);color:#fff;border-left-color:var(--gold);font-weight:600}
+.navitem .ico{opacity:.85}
+.navitem .nlabel{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.navdiv{border-top:1px solid rgba(255,255,255,.10);margin:10px 6px}
+.lockro{width:14px;height:14px;flex:none;opacity:.95;color:var(--brass)}
+.ro-note{font-size:10.5px;color:var(--sbmut);line-height:1.45;margin:10px 10px 0;padding-left:8px;
+  border-left:2px solid var(--brass)}
+
+/* เมนูผู้ใช้ — ก้นแถบ กางขึ้น */
+.sb-account{position:relative;margin-top:auto;border-top:1px solid rgba(255,255,255,.10);padding:10px}
+.sb-userbtn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;cursor:pointer;
+  color:var(--sbtext);font:inherit;font-size:12.5px;padding:6px 7px;border-radius:8px;text-align:left}
+.sb-userbtn:hover{background:rgba(255,255,255,.07)}
+.sb-avatar{width:26px;height:26px;border-radius:50%;background:var(--brass);color:#fff;flex:none;
+  display:flex;align-items:center;justify-content:center}
+.sb-avatar svg{width:15px;height:15px}
+.sb-uname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-car{width:14px;height:14px;flex:none;opacity:.8;transform:rotate(180deg);transition:transform .15s}
+.sb-account.open .sb-car{transform:rotate(0)}
+.sb-umenu{display:none;position:absolute;left:10px;bottom:calc(100% - 4px);z-index:20;min-width:190px;
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:5px;
+  box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.sb-account.open .sb-umenu{display:block}
+.sb-umenu a,.sb-umenu button{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;
+  cursor:pointer;font:inherit;font-size:13px;color:var(--ink);padding:9px 10px;border-radius:7px;
+  text-decoration:none;text-align:left;white-space:nowrap}
+.sb-umenu a:hover,.sb-umenu button:hover{background:#F1F3F2}
+.sb-umenu .ico{opacity:.75}
+.sb-umenu .udanger{color:#B4372F}
+.usep{border-top:1px solid var(--line);margin:4px 2px}
+
+aside.mini .sb-meta,aside.mini .navlab,aside.mini .ro-note,
+aside.mini .navitem .nlabel,aside.mini .navitem .lockro,
+aside.mini .sb-uname,aside.mini .sb-car{display:none}
+aside.mini .brand{justify-content:center;padding:14px 0}
+aside.mini .navitem{justify-content:center;padding:10px 0}
+aside.mini .sb-userbtn{justify-content:center}
 
 /* ---------- main ---------- */
 main{flex:1;min-width:0;padding:18px 22px 30px}
@@ -127,7 +179,8 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 
 .pager{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--mut);font-size:12.5px;flex-wrap:wrap}
 .pager button{font:inherit;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:4px 10px;cursor:pointer}
-.notice{background:#FFF8E6;border:1px solid #EAD9A0;border-radius:10px;padding:14px 16px;margin-bottom:12px;color:#7A5A00}
+.notice{background:#FFF3CD;border:1px solid #E6C34A;border-radius:10px;padding:14px 16px;margin-bottom:12px;color:#7A5D00}
+.notice .ico,.hbar .ico{width:16px;height:16px;flex:none;vertical-align:-3px;margin-right:6px}
 .notice.err{background:#FDEDEC;border-color:#F1B8B4;color:var(--red)}
 .empty{padding:40px;text-align:center;color:var(--mut)}
 
@@ -144,11 +197,25 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 #dataScreen{display:none}
 #loginScreen{display:flex;align-items:center;justify-content:center;min-height:72vh}
 .logincard{background:var(--card);border:1px solid var(--line);border-radius:16px;
-  padding:32px 34px;width:320px;text-align:center}
+  padding:32px 34px;width:340px;text-align:center}
+.app-tile{width:72px;height:72px;border-radius:14px;background:var(--paper);padding:8px;margin:0 auto;
+  display:flex;align-items:center;justify-content:center;color:var(--brass)}
+.app-tile svg{width:100%;height:100%}
 .pininp{font-size:22px;letter-spacing:10px;text-align:center;width:190px;padding:10px 6px;
   border:1px solid var(--line);border-radius:10px;font-family:inherit}
-.ordiv{display:flex;align-items:center;gap:10px;color:var(--mut);font-size:11.5px;margin:18px 0 12px}
+.pinrow{display:flex;gap:8px;justify-content:center;align-items:stretch}
+.btn-unlock{width:50px;flex:none;display:inline-flex;align-items:center;justify-content:center;
+  background:#F1F3F2;color:#3C4A47;border:1px solid #DDE3E1;border-radius:10px;cursor:pointer;padding:0}
+.btn-unlock:hover{background:#E7EBEA}
+.btn-unlock svg{width:22px;height:22px}
+.pinerr{color:var(--red);font-size:12.5px;font-weight:600;margin-top:10px;min-height:17px}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}
+  30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.shake{animation:shake .5s}
+.ordiv{display:flex;align-items:center;gap:12px;color:#3C4A47;font-size:14px;font-weight:600;margin:36px 0 16px}
 .ordiv::before,.ordiv::after{content:'';flex:1;border-top:1px solid var(--line)}
+.ordiv span{display:inline-flex;align-items:center;gap:8px}
+.ordiv svg{width:20px;height:20px;flex:none}
 
 /* ---------- settings ---------- */
 #settingsScreen{display:none}
@@ -189,31 +256,75 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 </style>
 </head>
 <body>
+<!-- ชุดไอคอนเส้นกลาง — ชุดเดียวกับแอปอื่นของกลุ่ม (pattara-emoji)
+     เรียกใช้ด้วย <svg class="ico"><use href="#i-xxx"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<g id="_s" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></g>
+<symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-log-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+<symbol id="i-book-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+<symbol id="i-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+<symbol id="i-alert-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-octagon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+<symbol id="i-refresh-cw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-9 9c-4.97 0-9-4.03-9-9s4.03-9 9-9c2.87 0 5.43 1.35 7.07 3.44"/><polyline points="21 3 21 9 15 9"/></symbol>
+<symbol id="i-rotate-ccw" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+<symbol id="i-credit-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+</defs></svg>
 <div id="app">
-  <aside>
+  <aside id="sidebar">
+    <button class="sb-toggle" id="sbToggle" aria-label="ย่อ/ขยายแถบเมนู">
+      <svg class="ico-chev" aria-hidden="true"><use href="#i-chevron-left"/></svg>
+    </button>
     <div class="brand">
-      <h1>ระบบขึ้นเงินบัตรเครดิต</h1>
-      <small>Pattara Group · ฝ่ายบัญชี</small><br>
-      <span class="badge-ro" id="roleBadge">🔒 อ่านอย่างเดียว</span>
-      <div id="appVer" style="font-size:10.5px;color:var(--mut);margin-top:7px"></div>
+      <div class="sb-tile"><svg aria-hidden="true"><use href="#i-credit-card"/></svg></div>
+      <div class="sb-meta">
+        <div class="sb-name" id="appName">ระบบขึ้นเงินบัตรเครดิต</div>
+        <div class="sb-ver" id="appVer"></div>
+      </div>
     </div>
     <nav id="nav"></nav>
-    <div class="userbox">ผู้ใช้งาน<br><b id="userEmail"></b>
-      <button class="mini danger withico" id="btnLogout" style="display:none;margin-top:8px;width:100%"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>ออกจากระบบ</span></button>
+    <div class="sb-account" id="sbAccount" style="display:none">
+      <button class="sb-userbtn" id="sbUserBtn" aria-haspopup="true" aria-expanded="false">
+        <span class="sb-avatar"><svg aria-hidden="true"><use href="#i-user"/></svg></span>
+        <span class="sb-uname" id="roleBadge">ผู้ใช้งานทั่วไป</span>
+        <svg class="sb-car" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      </button>
+      <div class="sb-umenu" id="sbUmenu" role="menu">
+        <a id="lnkManual" target="_blank" rel="noopener noreferrer" style="display:none">
+          <svg class="ico" aria-hidden="true"><use href="#i-book-open"/></svg>คู่มือการใช้งาน</a>
+        <button id="mnuSet" style="display:none">
+          <svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg>ตั้งค่าระบบ</button>
+        <div class="usep"></div>
+        <button class="udanger" id="btnLogout">
+          <svg class="ico" aria-hidden="true"><use href="#i-log-out"/></svg>ออกจากระบบ</button>
+      </div>
     </div>
   </aside>
 
   <main>
     <div id="loginScreen">
-      <div class="logincard">
-        <div style="font-size:34px">🔐</div>
-        <h2 style="margin:10px 0 4px;font-size:18px">ระบบขึ้นเงินบัตรเครดิต EDC</h2>
-        <div style="font-size:12.5px;color:var(--mut);margin-bottom:18px">เลือกวิธีเข้าใช้งาน</div>
-        <button class="btn pri" id="btnEnterUser" style="width:100%;padding:11px;font-size:14.5px">เข้าใช้งาน</button>
-        <div class="ordiv"><span>ผู้ดูแลระบบ</span></div>
-        <input type="password" id="pin" class="pininp" inputmode="numeric" maxlength="6"
-          placeholder="••••••" aria-label="PIN ผู้ดูแล 6 หลัก">
-        <div style="margin-top:10px"><button class="btn" id="btnEnterAdmin" style="width:100%">เข้าสู่ระบบด้วย PIN</button></div>
+      <div class="logincard" id="loginCard">
+        <div class="app-tile"><svg aria-hidden="true"><use href="#i-lock"/></svg></div>
+        <h2 style="margin:14px 0 0;font-size:18px">ระบบขึ้นเงินบัตรเครดิต EDC</h2>
+        <button class="btn pri" id="btnEnterUser"
+          style="width:100%;padding:11px;font-size:14.5px;margin-top:24px">ผู้ใช้งานทั่วไป</button>
+        <div class="ordiv"><span><svg aria-hidden="true"><use href="#i-wrench"/></svg>ผู้ดูแลระบบ</span></div>
+        <div class="pinrow">
+          <input type="password" id="pin" class="pininp" inputmode="numeric" maxlength="6"
+            placeholder="••••••" aria-label="PIN ผู้ดูแล 6 หลัก">
+          <button class="btn-unlock" id="btnEnterAdmin" title="เข้าสู่ระบบด้วย PIN" aria-label="เข้าสู่ระบบด้วย PIN">
+            <svg aria-hidden="true"><use href="#i-unlock"/></svg></button>
+        </div>
+        <div class="pinerr" id="pinErr"></div>
       </div>
     </div>
 
@@ -254,7 +365,7 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
         <input type="text" id="q" placeholder="ค้นหาทุกฟิลด์…">
         <select id="store"><option value="">ทุกสาขา</option></select>
         <span class="rangewrap">
-          <button class="rangebtn" id="rangeBtn" type="button">📅 <span id="rangeLabel">ทั้งหมด</span></button>
+          <button class="rangebtn withico" id="rangeBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span id="rangeLabel">ทั้งหมด</span></button>
           <input type="hidden" id="from"><input type="hidden" id="to">
           <div class="cal" id="cal" style="display:none"></div>
         </span>
@@ -267,8 +378,8 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 
       <div id="syncRow" style="display:flex;align-items:center;gap:10px;margin:2px 0 12px;flex-wrap:wrap">
         <span class="grow"></span>
-        <button class="btn" id="btnIxEdit" style="display:none">✏️ แก้ไข Index</button>
-        <button class="btn pri" id="btnIxSave" style="display:none">💾 บันทึก Index</button>
+        <button class="btn withico" id="btnIxEdit" style="display:none"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg><span>แก้ไข Index</span></button>
+        <button class="btn pri withico" id="btnIxSave" style="display:none"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>บันทึก Index</span></button>
         <button class="btn" id="btnIxAdd" style="display:none">＋ เพิ่มแถว</button>
         <button class="btn" id="btnIxCancel" style="display:none">ยกเลิก</button>
         <button class="btn" id="btnCsv">CSV</button>
@@ -335,22 +446,73 @@ function setNotice(html,err){
   $('notice').innerHTML = html ? '<div class="notice'+(err?' err':'')+'">'+html+'</div>' : '';
 }
 
+/* ---------- ไอคอนจากชุดกลาง ---------- */
+function ICO(name){ return '<svg class="ico" aria-hidden="true"><use href="#i-'+name+'"/></svg>'; }
+
+/* ---------- ชื่อแอปต้องอยู่บรรทัดเดียว ย่อขนาดแทนการตัดบรรทัด ---------- */
+function fitAppName(){
+  var el = $('appName'); if (!el || !el.offsetParent) return;   // แถบย่ออยู่ วัดไม่ได้
+  var box = el.parentNode; if (!box || !box.clientWidth) return;
+  var size = 13.5;
+  el.style.fontSize = size + 'px';
+  while (el.scrollWidth > box.clientWidth && size > 10){ size -= 0.5; el.style.fontSize = size + 'px'; }
+  el.title = el.scrollWidth > box.clientWidth ? el.textContent : '';
+}
+
+/* ---------- ปุ่มย่อ/ขยายแถบซ้าย (จำสถานะไว้) ---------- */
+function initSidebar(){
+  var side = $('sidebar'), btn = $('sbToggle');
+  try { if (localStorage.getItem('EDC_sidebar') === 'mini') side.classList.add('mini'); } catch(e){}
+  btn.addEventListener('click', function(){
+    var mini = side.classList.toggle('mini');   // ลูกศรหมุนเองด้วย CSS ห้ามเขียน textContent ทับ
+    try { localStorage.setItem('EDC_sidebar', mini ? 'mini' : 'full'); } catch(e){}
+    fitAppName();
+  });
+}
+
+/* ---------- เมนูผู้ใช้ (กางขึ้นจากก้นแถบ) ---------- */
+function initUserMenu(){
+  var wrap = $('sbAccount'), btn = $('sbUserBtn');
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = wrap.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e){
+    if (!e.target.closest || !e.target.closest('.sb-account')){
+      wrap.classList.remove('open'); btn.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ wrap.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  });
+  $('mnuSet').onclick = function(){ wrap.classList.remove('open'); openSettings(); };
+}
+
 /* ---------- nav / pills / tabs ---------- */
 function renderNav(){
-  $('btnLogout').style.display = S.role ? '' : 'none';
+  $('sbAccount').style.display = S.role ? '' : 'none';
   $('appVer').textContent = BOOTSTRAP.appVersion || '';
-  $('roleBadge').textContent = S.role==='admin' ? '🛠 ผู้ดูแลระบบ' : '🔒 อ่านอย่างเดียว';
-  if (!S.role){ $('nav').innerHTML=''; return; }
+  $('roleBadge').textContent = S.role==='admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งานทั่วไป';
+  $('sbUserBtn').title = S.role==='admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งานทั่วไป';
+  $('mnuSet').style.display = S.role==='admin' ? '' : 'none';
+  var man = BOOTSTRAP.manualUrl || '';
+  $('lnkManual').style.display = man ? '' : 'none';
+  if (man) $('lnkManual').href = man;
+  if (!S.role){ $('nav').innerHTML=''; fitAppName(); return; }
+  /* กุญแจติดแท็บที่ "เปิดอยู่" อันเดียวเท่านั้น และเฉพาะ role user (dual-access-login) */
+  var lock = '<svg class="lockro" aria-hidden="true"><use href="#i-lock"/></svg>';
+  var roData = (S.role!=='admin' && S.screen==='data') ? lock : '';
   var html = '<div class="navlab">เมนู</div>'+
-    '<button class="navitem'+(S.screen==='data'?' on':'')+'" id="navData">ขึ้นเงินบัตรเครดิต (EDC)</button>';
-  if (S.role === 'admin'){
-    html += '<div class="navdiv"></div>'+
-      '<button class="navitem withico'+(S.screen==='settings'?' on':'')+'" id="navSet">'+
-        '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>ตั้งค่าระบบ</span></button>';
+    '<button class="navitem'+(S.screen==='data'?' on':'')+'" id="navData">'+
+      ICO('credit-card')+'<span class="nlabel">ขึ้นเงินบัตรเครดิต (EDC)</span>'+roData+'</button>';
+  if (S.role !== 'admin'){
+    /* ไอคอนเดี่ยวไม่มีคำอธิบาย ผู้ใช้เดาไม่ออก — ต้องมีคำกำกับ 1 บรรทัด */
+    html += '<div class="ro-note">อ่านอย่างเดียว — ดูและดาวน์โหลดได้ แก้ไขข้อมูลไม่ได้</div>';
   }
   $('nav').innerHTML = html;
   $('navData').onclick = function(){ showScreen('data'); };
-  if (S.role === 'admin') $('navSet').onclick = openSettings;
+
 }
 function renderPills(){
   $('pills').innerHTML = BOOTSTRAP.sources.map(function(p){
@@ -460,20 +622,20 @@ function renderHealth(){
   if (!HEALTH || HEALTH.ok){ el.innerHTML=''; updateExportBtns(); return; }
   var h;
   if (HEALTH.rows === -1){
-    h = '<b>⛔ ตรวจสอบความครบถ้วนของข้อมูลไม่ได้</b> — '+esc(HEALTH.error||'')+
+    h = '<b>'+ICO('octagon-alert')+'ตรวจสอบความครบถ้วนของข้อมูลไม่ได้</b> — '+esc(HEALTH.error||'')+
         '<br>ปิดการ Export ไว้ก่อนเพื่อความปลอดภัย ';
   } else {
     var list = (HEALTH.merchants||[]).map(function(m){
       return '<b>'+esc(m.id)+'</b>'+(m.name?' ('+esc(m.name)+')':'')+' ×'+m.count;
     }).join(' · ');
-    h = '<b>⛔ ข้อมูลใน query ไม่ครบ '+HEALTH.rows.toLocaleString()+' แถว</b> — MERCHANT_ID ที่ยังไม่ได้จับคู่สาขาใน Index: '+list+
+    h = '<b>'+ICO('octagon-alert')+'ข้อมูลใน query ไม่ครบ '+HEALTH.rows.toLocaleString()+' แถว</b> — MERCHANT_ID ที่ยังไม่ได้จับคู่สาขาใน Index: '+list+
         '<br>ปุ่ม Export (CSV / Excel / PDF) ถูกปิดทุกกรณี จนกว่าจะจับคู่ในแท็บ Index แล้ว Sync/ตรวจซ้ำจนข้อมูลครบ ';
   }
   var canEdit = !!(srcObj() && srcObj().indexEditable);
   h += '<span style="white-space:nowrap">'+
-       (S.role==='admin' && canEdit ? '<button class="mini" id="hGoIx">✏️ ไปแก้ที่ Index</button> '
-         : (canEdit ? 'ให้ผู้ดูแลระบบจับคู่ในแท็บ Index ' : 'ต้องแก้การจับคู่ที่<b>ชีตต้นทาง</b> (แท็บ index) แล้วกด 🔄 Sync ให้ระบบประมวลผลใหม่ '))+
-       '<button class="mini" id="hRecheck">🔁 ตรวจซ้ำ</button></span>';
+       (S.role==='admin' && canEdit ? '<button class="mini withico" id="hGoIx"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg><span>ไปแก้ที่ Index</button> '
+         : (canEdit ? 'ให้ผู้ดูแลระบบจับคู่ในแท็บ Index ' : 'ต้องแก้การจับคู่ที่<b>ชีตต้นทาง</b> (แท็บ index) แล้วกด Sync ให้ระบบประมวลผลใหม่ '))+
+       '<button class="mini withico" id="hRecheck"><svg class="ico" aria-hidden="true"><use href="#i-rotate-ccw"/></svg><span>ตรวจซ้ำ</span></button></span>';
   el.innerHTML = '<div class="notice err">'+h+'</div>';
   var g = $('hGoIx');
   if (g) g.onclick = function(){
@@ -488,7 +650,7 @@ function doRecheck(){
   google.script.run
     .withSuccessHandler(function(hh){
       overlay(false); HEALTH = hh;
-      if (hh && hh.ok){ toast('ข้อมูลใน query ครบแล้ว ✓ เปิดการ Export ให้แล้ว', true); }
+      if (hh && hh.ok){ toast('ข้อมูลใน query ครบแล้ว เปิดการ Export ให้แล้ว', true); }
       else toast('ยังพบข้อมูลไม่ครบ '+(hh && hh.rows>0 ? hh.rows+' แถว' : ''));
       renderHealth();
     })
@@ -627,7 +789,7 @@ function renderTable(){
   var si = storeIdx_();
 
   var head = '<thead><tr>'+S.headers.map(function(h,i){
-    var arrow = i===S.sortIdx ? (S.sortDir>0?' ▲':' ▼') : '';
+    var arrow = i===S.sortIdx ? (S.sortDir>0?' \u2191':' \u2193') : '';
     return '<th class="'+(isNumCol(i)?'num':'')+'" data-i="'+i+'">'+esc(h)+arrow+'</th>';
   }).join('')+'</tr></thead>';
 
@@ -795,7 +957,7 @@ function startSyncFlow(){
       if (res && res.ok){
         var st = res.stats||{};
         var dup = (st.skipDupTax||0)+(st.skipDupEmail||0);
-        toast('Sync สำเร็จ ✓ เพิ่มใหม่ '+(st.inserted||0)+' รายการ · ข้ามรายการซ้ำ '+dup, true);
+        toast('Sync สำเร็จ เพิ่มใหม่ '+(st.inserted||0)+' รายการ · ข้ามรายการซ้ำ '+dup, true);
         LASTSYNC = res.lastSync || LASTSYNC;
         renderSyncInfo();
         if (S.src===k) loadData();
@@ -835,8 +997,8 @@ function startRebuildFlow(){
       if (res && res.ok){
         var n = (res.rebuilt == null) ? '-' : res.rebuilt;
         toast(res.mode==='formula'
-          ? ('สั่งคำนวณสูตรใหม่แล้ว ✓ แท็บ query มี '+n+' แถว')
-          : ('สร้างตาราง query ใหม่แล้ว ✓ '+n+' แถว'), true);
+          ? ('สั่งคำนวณสูตรใหม่แล้ว แท็บ query มี '+n+' แถว')
+          : ('สร้างตาราง query ใหม่แล้ว '+n+' แถว'), true);
         if (res.unknownMerchants && res.unknownMerchants.length){
           toast('ยังมี MERCHANT_ID ที่ไม่มีใน Index '+res.unknownMerchants.length+
                 ' รายการ: '+res.unknownMerchants.slice(0,5).join(', ')+
@@ -885,7 +1047,7 @@ function startIxEdit(){
 }
 function renderIxEditor(){
   $('cards').innerHTML='';
-  setNotice('⚠️ Index คือตัวจับคู่ MERCHANT_ID → รหัสสาขา BC — บันทึกแล้ว<b>มีผลย้อนหลังกับข้อมูลทั้งระบบทันที</b> '+
+  setNotice(ICO('alert-triangle')+'Index คือตัวจับคู่ MERCHANT_ID → รหัสสาขา BC — บันทึกแล้ว<b>มีผลย้อนหลังกับข้อมูลทั้งระบบทันที</b> '+
     '(คอลัมน์รหัสสาขาในชีตคำนวณจากตารางนี้) ระบบเก็บประวัติการแก้ไขทุกครั้ง');
   var IXF = (srcObj() && srcObj().indexFields) || [];
   var h = '<thead><tr><th style="width:44px">#</th>'+
@@ -902,7 +1064,7 @@ function renderIxEditor(){
   var tbl = $('tbl');
   tbl.className = 'tedit';
   tbl.innerHTML = h;
-  $('pager').innerHTML = IX.length.toLocaleString()+' รายการ · แก้ไขเสร็จแล้วกด 💾 บันทึก Index';
+  $('pager').innerHTML = IX.length.toLocaleString()+' รายการ · แก้ไขเสร็จแล้วกด บันทึก Index';
   Array.prototype.forEach.call(tbl.querySelectorAll('input[data-i]'), function(inp){
     inp.oninput = function(){ IX[+inp.getAttribute('data-i')][+inp.getAttribute('data-c')] = inp.value.trim(); };
   });
@@ -927,7 +1089,7 @@ function saveIx(){
   google.script.run
     .withSuccessHandler(function(res){
       overlay(false);
-      toast('บันทึก Index สำเร็จ ✓ ('+res.count+' แถว)', true);
+      toast('บันทึก Index สำเร็จ ('+res.count+' แถว)', true);
       HEALTH = res.health || HEALTH;
       renderHealth();
       BRANCHES=[]; loadBranches();
@@ -1059,24 +1221,29 @@ function renderSettings(cfg){
   if (cfg.pinIsDefault) {
     h += '<div style="background:#FDECEA;border:1px solid var(--red);border-radius:8px;'+
          'padding:10px 12px;margin-bottom:12px;color:var(--red);font-size:13px;line-height:1.6">'+
-         '<b>⚠️ PIN ผู้ดูแลยังเป็นค่าเริ่มต้น</b><br>'+
+         '<b>'+ICO('alert-triangle')+'PIN ผู้ดูแลยังเป็นค่าเริ่มต้น</b><br>'+
          'ใครก็เดาได้ กรุณาตั้ง PIN ใหม่ที่ช่องด้านล่าง แล้วกดบันทึกการตั้งค่า'+
          '</div>';
   }
   h += '<div class="set-actions">'+
-    '<button class="btn pri" id="btnSetSave">💾 บันทึกการตั้งค่า</button>'+
+    '<button class="btn pri withico" id="btnSetSave"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>บันทึกการตั้งค่า</span></button>'+
     '<button class="btn" id="btnSetBack">กลับโดยไม่บันทึก</button>'+
     '<span style="font-size:12px;color:var(--mut)">ค่าเก็บใน Script Properties — ไม่แตะชีตข้อมูล มีผลทันทีหลังบันทึก</span>'+
     '</div>';
   (cfg.sources||[]).forEach(function(sc){
     var p = BOOTSTRAP.sources.filter(function(x){return x.key===sc.key;})[0];
     var dot = p ? '<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+esc(p.color)+';margin-right:6px"></span>' : '';
-    h += '<div class="sec"><h3>'+dot+'🔄 Sync — '+esc(sc.label+' · '+sc.sublabel)+'</h3>'+
-      '<div class="hint">จากไฟล์ SyncEndpoint ในโปรเจกต์สคริปต์ของชีตนั้น (Deploy เป็น Web app แบบ Anyone) — ใส่ครบทั้งคู่ ปุ่ม 🔄 Sync ของชิปนี้จึงทำงาน</div>'+
+    h += '<div class="sec"><h3>'+dot+ICO('refresh-cw')+' Sync — '+esc(sc.label+' · '+sc.sublabel)+'</h3>'+
+      '<div class="hint">จากไฟล์ SyncEndpoint ในโปรเจกต์สคริปต์ของชีตนั้น (Deploy เป็น Web app แบบ Anyone) — ใส่ครบทั้งคู่ ปุ่ม Sync ของชิปนี้จึงทำงาน</div>'+
       '<div class="frow"><label>Sync URL</label><input class="sin wide" id="setUrl_'+esc(sc.key)+'" value="'+esc(sc.syncUrl||'')+'" placeholder="https://script.google.com/macros/s/…/exec"></div>'+
       '<div class="frow"><label>Sync Token</label><input class="sin wide" id="setToken_'+esc(sc.key)+'" value="'+esc(sc.syncToken||'')+'"></div></div>';
   });
-  h += '<div class="sec"><h3>🔑 ความปลอดภัย</h3>'+
+  h += '<div class="sec"><h3>'+ICO('book-open')+' คู่มือการใช้งาน</h3>'+
+    '<div class="hint">ใส่ลิงก์ Google Doc ของคู่มือ — เว้นว่างไว้ เมนูคู่มือจะถูกซ่อน</div>'+
+    '<div class="frow"><label>ลิงก์คู่มือ</label>'+
+    '<input class="sin wide" id="setManual" value="'+esc(cfg.manualUrl||'')+'" placeholder="https://docs.google.com/document/d/…"></div></div>';
+
+  h += '<div class="sec"><h3>'+ICO('lock')+' ความปลอดภัย</h3>'+
     '<div class="frow"><label>เปลี่ยน PIN</label><input class="sin" id="setPin" type="password" inputmode="numeric" maxlength="6" placeholder="ตัวเลข 6 หลัก">'+
     '<span style="font-size:11.5px;color:var(--mut)">เว้นว่าง = ไม่เปลี่ยน — ใช้ร่วมกันทุกชิป</span></div>'+
     '<div class="hint">เก็บแบบเข้ารหัส เปิดดูย้อนหลังไม่ได้ — ถ้าลืม ให้ผู้ดูแลเปิด Apps Script ของแอปนี้แล้วกดเรียกใช้ฟังก์ชัน resetAdminPin()</div></div>';
@@ -1087,6 +1254,7 @@ function renderSettings(cfg){
 function saveSettingsUi(cfg){
   var np = $('setPin').value.trim();
   var payload = {
+    manualUrl: $('setManual').value.trim(),
     newPin: np,
     sources: (cfg.sources||[]).map(function(sc){
       return { key: sc.key,
@@ -1099,7 +1267,7 @@ function saveSettingsUi(cfg){
     .withSuccessHandler(function(res){
       overlay(false);
       if (res.pinChanged && np) S.pin = np;
-      toast('บันทึกการตั้งค่าแล้ว ✓ (ทุกชิป)'+(res.pinChanged?' + เปลี่ยน PIN':''), true);
+      toast('บันทึกการตั้งค่าแล้ว (ทุกชิป)'+(res.pinChanged?' + เปลี่ยน PIN':''), true);
       showScreen('data');
     })
     .withFailureHandler(function(e){ overlay(false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
@@ -1108,7 +1276,6 @@ function saveSettingsUi(cfg){
 
 /* ---------- init / login ---------- */
 function init(){
-  $('userEmail').textContent = BOOTSTRAP.user || '';
   var now=new Date();
   $('from').value=ymd(new Date(now.getFullYear(),now.getMonth(),1));
   $('to').value=ymd(now);
@@ -1145,20 +1312,42 @@ function init(){
 
   $('btnEnterUser').onclick = function(){ enterApp('user'); };
   $('btnEnterAdmin').onclick = adminLogin;
-  $('pin').addEventListener('input', function(){ this.value = this.value.replace(/\D/g,'').slice(0,6); });
+  $('pin').addEventListener('input', function(){
+    this.value = this.value.replace(/\D/g,'').slice(0,6);
+    $('pinErr').textContent = '';
+    if (this.value.length === 6) adminLogin();      /* ครบ 6 หลัก ส่งตรวจเลย ไม่ต้องกดปุ่ม */
+  });
   $('pin').addEventListener('keydown', function(e){ if (e.key === 'Enter') adminLogin(); });
 
+  initSidebar();
+  initUserMenu();
   renderNav();
   renderSyncInfo();
   showScreen('login');
+
+  fitAppName();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAppName);
+  var w_; window.addEventListener('resize', function(){ clearTimeout(w_); w_ = setTimeout(fitAppName, 120); });
+}
+function pinFail(msg){
+  var card = $('loginCard'), inp = $('pin');
+  $('pinErr').textContent = msg;
+  card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+  inp.disabled = false; inp.value = ''; inp.focus();
 }
 function adminLogin(){
-  var pin = $('pin').value.trim();
-  if (!/^\d{6}$/.test(pin)){ toast('กรุณาใส่ PIN ตัวเลข 6 หลัก'); return; }
+  var inp = $('pin'), pin = inp.value.trim();
+  if (!/^\d{6}$/.test(pin)){ pinFail('PIN ต้องเป็นตัวเลข 6 หลัก'); return; }
+  $('pinErr').textContent = '';
+  inp.disabled = true;                                  // กันพิมพ์ซ้ำระหว่างรอตรวจ
   overlay(true,'กำลังตรวจสอบ PIN…');
   google.script.run
-    .withSuccessHandler(function(){ overlay(false); S.pin = pin; $('pin').value=''; enterApp('admin'); })
-    .withFailureHandler(function(e){ overlay(false); $('pin').value=''; toast(e && e.message ? e.message : e); })
+    .withSuccessHandler(function(){
+      overlay(false); S.pin = pin; inp.disabled = false; inp.value=''; enterApp('admin');
+    })
+    .withFailureHandler(function(e){
+      overlay(false); pinFail(e && e.message ? e.message : String(e));
+    })
     .verifyPin(pin);
 }
 function logout(){
@@ -1176,13 +1365,11 @@ function logout(){
   setNotice(''); $('healthBar').innerHTML=''; $('cards').innerHTML='';
   $('tbl').className='data'; $('tbl').innerHTML=''; $('pager').innerHTML='';
   $('segRows').className='on'; $('segDaily').className=''; $('segBranch').className='';
-  $('userEmail').textContent = BOOTSTRAP.user || '';
-  $('pin').value='';
+  $('pin').value=''; $('pinErr').textContent='';
   showScreen('login');
 }
 function enterApp(role){
-  S.role = role;
-  $('userEmail').textContent = (BOOTSTRAP.user || 'ผู้ใช้ทั่วไป') + (role==='admin' ? ' (admin)' : '');
+  S.role = role;   /* แถบผู้ใช้บอก "สิทธิ์" ไม่ใช่ "ตัวตน" — ห้ามโชว์อีเมล (dual-access-login) */
   showScreen('data');
   selectSrc(BOOTSTRAP.sources[0].key);
 }

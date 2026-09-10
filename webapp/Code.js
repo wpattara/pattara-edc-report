@@ -16,7 +16,7 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '1.8.2';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '1.9.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
                                  // 1.8.0 = สั่ง rebuild แท็บ query จากหน้าเว็บได้ (ผู้ดูแล)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 
@@ -134,6 +134,7 @@ function doGet() {
 function buildBootstrap_() {
   return {
     appVersion: appVersionLabel_(),
+    manualUrl: PropertiesService.getScriptProperties().getProperty('APP_MANUAL_URL') || '',
     user: getUserEmail_(),
     maxRows: MAX_ROWS,
     sources: SOURCES.map(function (s) {
@@ -531,7 +532,7 @@ function startSync(sourceKey) {
   var token = props.getProperty('SYNC_TOKEN_' + src.key);
   if (!url || !token) {
     return { ok: false, reason: 'notconfigured',
-             message: 'ยังไม่ได้ตั้งค่า Sync URL / Token — ให้ผู้ดูแลกรอกใน ⚙️ ตั้งค่าระบบ' };
+             message: 'ยังไม่ได้ตั้งค่า Sync URL / Token — ให้ผู้ดูแลกรอกใน ตั้งค่าระบบ' };
   }
 
   var lastTs = Number(props.getProperty('SYNC_APP_TS_' + src.key) || 0);
@@ -583,7 +584,7 @@ function startRebuild(pin, sourceKey) {
   var token = props.getProperty('SYNC_TOKEN_' + src.key);
   if (!url || !token) {
     return { ok: false, reason: 'notconfigured',
-             message: 'ยังไม่ได้ตั้งค่า Sync URL / Token ของชิปนี้ — กรอกใน ⚙️ ตั้งค่าระบบ ก่อน' };
+             message: 'ยังไม่ได้ตั้งค่า Sync URL / Token ของชิปนี้ — กรอกใน ตั้งค่าระบบ ก่อน' };
   }
 
   var lastTs = Number(props.getProperty('REBUILD_APP_TS_' + src.key) || 0);
@@ -637,13 +638,14 @@ function lastSyncInfo_(sourceKey) {
 
 /* ====================== Settings (admin) ====================== */
 
-/* หน้า ⚙️ เดียวเห็น config ของทุกชิป — ไม่ผูกกับชิปที่เลือกอยู่ */
+/* หน้า เดียวเห็น config ของทุกชิป — ไม่ผูกกับชิปที่เลือกอยู่ */
 function getSettings(pin) {
   assertPin_(pin);
   var props = PropertiesService.getScriptProperties();
   return {
     ok: true,
     pinIsDefault: pinIsDefault_(),
+    manualUrl: props.getProperty('APP_MANUAL_URL') || '',
     sources: SOURCES.map(function (s) {
       return {
         key: s.key, label: s.label, sublabel: s.sublabel || '',
@@ -667,6 +669,12 @@ function saveSettings(pin, obj) {
     props.setProperty('SYNC_TOKEN_' + e.key, String(e.syncToken || '').trim());
     touched.push(e.key);
   });
+  if (typeof obj.manualUrl === 'string') {
+    var mu = obj.manualUrl.trim();
+    if (mu && !/^https:\/\//i.test(mu)) throw new Error('ลิงก์คู่มือต้องขึ้นต้นด้วย https://');
+    props.setProperty('APP_MANUAL_URL', mu);
+  }
+
   var np = String(obj.newPin || '').trim();
   if (np) {
     if (!/^\d{6}$/.test(np)) throw new Error('PIN ใหม่ต้องเป็นตัวเลข 6 หลัก');
