@@ -16,7 +16,7 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '1.9.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '1.10.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
                                  // 1.8.0 = สั่ง rebuild แท็บ query จากหน้าเว็บได้ (ผู้ดูแล)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 
@@ -135,6 +135,8 @@ function buildBootstrap_() {
   return {
     appVersion: appVersionLabel_(),
     manualUrl: PropertiesService.getScriptProperties().getProperty('APP_MANUAL_URL') || '',
+    appName: PropertiesService.getScriptProperties().getProperty('APP_NAME') || 'ระบบขึ้นเงินบัตรเครดิต',
+    appDesc: PropertiesService.getScriptProperties().getProperty('APP_DESC') || '',
     user: getUserEmail_(),
     maxRows: MAX_ROWS,
     sources: SOURCES.map(function (s) {
@@ -639,6 +641,13 @@ function lastSyncInfo_(sourceKey) {
 /* ====================== Settings (admin) ====================== */
 
 /* หน้า เดียวเห็น config ของทุกชิป — ไม่ผูกกับชิปที่เลือกอยู่ */
+/** ปิดบัง token ก่อนส่งออกไปหน้าเว็บ — pattara-setting ข้อ 5 ห้ามคืนค่าจริงเด็ดขาด */
+function maskToken_(t) {
+  t = String(t || '');
+  if (!t) return '';
+  return t.length <= 8 ? '••••••' : (t.slice(0, 3) + '……' + t.slice(-4));
+}
+
 function getSettings(pin) {
   assertPin_(pin);
   var props = PropertiesService.getScriptProperties();
@@ -646,44 +655,113 @@ function getSettings(pin) {
     ok: true,
     pinIsDefault: pinIsDefault_(),
     manualUrl: props.getProperty('APP_MANUAL_URL') || '',
+    appName: props.getProperty('APP_NAME') || 'ระบบขึ้นเงินบัตรเครดิต',
+    appDesc: props.getProperty('APP_DESC') || '',
+    appVersion: appVersionLabel_(),
     sources: SOURCES.map(function (s) {
+      var tk = props.getProperty('SYNC_TOKEN_' + s.key) || '';
       return {
         key: s.key, label: s.label, sublabel: s.sublabel || '',
         syncUrl: props.getProperty('SYNC_URL_' + s.key) || '',
-        syncToken: props.getProperty('SYNC_TOKEN_' + s.key) || ''
+        hasToken: !!tk,
+        tokenMask: maskToken_(tk)
       };
     })
   };
 }
 
+/** ยิงปลายทางจริงด้วย token ที่ผิดจงใจ — ไม่มีผลข้างเคียง แต่บอกได้ว่าปลายทางเป็นอะไร */
+function testSyncEndpoint(pin, key) {
+  assertPin_(pin);
+  var props = PropertiesService.getScriptProperties();
+  var url = props.getProperty('SYNC_URL_' + key) || '';
+  var tk = props.getProperty('SYNC_TOKEN_' + key) || '';
+  if (!url) return { ok: false, message: 'ยังไม่ได้ตั้ง Sync URL ของชิปนี้' };
+  if (!tk)  return { ok: false, message: 'ยังไม่ได้ตั้ง Sync Token ของชิปนี้' };
+  try {
+    var full = url + (url.indexOf('?') > -1 ? '&' : '?') + 'token=CONNECTION_TEST_WRONG';
+    var resp = UrlFetchApp.fetch(full, { muteHttpExceptions: true, followRedirects: true });
+    var body = String(resp.getContentText() || '');
+    if (body.charAt(0) === '{') {
+      var d = {};
+      try { d = JSON.parse(body); } catch (e) {}
+      if (d.error === 'invalid token') {
+        return { ok: true, message: 'เชื่อมต่อได้ ปลายทางตอบเป็น JSON และตรวจ token ถูกต้อง' };
+      }
+      return { ok: true, message: 'เชื่อมต่อได้ ปลายทางตอบ: ' + body.slice(0, 160) };
+    }
+    if (body.indexOf('accounts.google.com') > -1 || body.indexOf('ServiceLogin') > -1) {
+      return { ok: false, message: 'ปลายทางบังคับให้ล็อกอิน — ต้อง deploy เป็น Web app โดยตั้ง "ผู้ที่มีสิทธิ์เข้าถึง" เป็น ทุกคน (ไม่ใช่ ทุกคนที่มีบัญชี Google)' };
+    }
+    if (body.indexOf('doGet') > -1) {
+      return { ok: false, message: 'ปลายทางยังชี้เวอร์ชันเก่าที่ไม่มี doGet — ต้องปั๊มเวอร์ชันใหม่แล้ว redeploy' };
+    }
+    return { ok: false, message: 'ปลายทางไม่ได้ตอบเป็น JSON — ตรวจว่า URL ลงท้ายด้วย /exec และเป็นของชิปนี้จริง' };
+  } catch (e) {
+    return { ok: false, message: 'เรียกไม่สำเร็จ: ' + ((e && e.message) || e) };
+  }
+}
+
+/**
+ * บันทึกทีละส่วนตามปุ่มที่กด (pattara-setting ข้อ 4 — ไม่มีปุ่มบันทึกรวม)
+ * obj.section = 'brand' | 'conn' | 'pin'
+ */
 function saveSettings(pin, obj) {
   assertPin_(pin);
   obj = obj || {};
   var props = PropertiesService.getScriptProperties();
-  var known = {};
-  SOURCES.forEach(function (s) { known[s.key] = true; });
-  var touched = [];
-  (obj.sources || []).forEach(function (e) {
-    if (!e || !known[e.key]) return;                 // key แปลกปลอม = เมิน
-    props.setProperty('SYNC_URL_' + e.key, String(e.syncUrl || '').trim());
-    props.setProperty('SYNC_TOKEN_' + e.key, String(e.syncToken || '').trim());
-    touched.push(e.key);
-  });
-  if (typeof obj.manualUrl === 'string') {
-    var mu = obj.manualUrl.trim();
-    if (mu && !/^https:\/\//i.test(mu)) throw new Error('ลิงก์คู่มือต้องขึ้นต้นด้วย https://');
-    props.setProperty('APP_MANUAL_URL', mu);
+  var section = String(obj.section || '');
+
+  if (section === 'brand') {
+    if (typeof obj.appName === 'string') {
+      var nm = obj.appName.trim();
+      if (!nm) throw new Error('ชื่อแอปว่างไม่ได้');
+      props.setProperty('APP_NAME', nm);
+    }
+    if (typeof obj.appDesc === 'string') props.setProperty('APP_DESC', obj.appDesc.trim());
+    if (typeof obj.manualUrl === 'string') {
+      var mu = obj.manualUrl.trim();
+      if (mu && !/^https:\/\//i.test(mu)) throw new Error('ลิงก์คู่มือต้องขึ้นต้นด้วย https://');
+      props.setProperty('APP_MANUAL_URL', mu);
+    }
+    log_('บันทึกป้ายแอป', 'ชื่อ/คำอธิบาย/ลิงก์คู่มือ');
+    return { ok: true, section: 'brand' };
   }
 
-  var np = String(obj.newPin || '').trim();
-  if (np) {
+  if (section === 'conn') {
+    var known = {};
+    SOURCES.forEach(function (s) { known[s.key] = true; });
+    var touched = [], tokenChanged = [];
+    (obj.sources || []).forEach(function (e) {
+      if (!e || !known[e.key]) return;                       // key แปลกปลอม = เมิน
+      if (typeof e.syncUrl === 'string') props.setProperty('SYNC_URL_' + e.key, e.syncUrl.trim());
+      /* token: ส่งมาเป็นสตริงว่าง = ไม่แตะของเดิม · ส่ง clearToken = ล้างทิ้ง */
+      if (e.clearToken) { props.deleteProperty('SYNC_TOKEN_' + e.key); tokenChanged.push(e.key); }
+      else if (typeof e.syncToken === 'string' && e.syncToken.trim()) {
+        props.setProperty('SYNC_TOKEN_' + e.key, e.syncToken.trim());
+        tokenChanged.push(e.key);
+      }
+      touched.push(e.key);
+    });
+    log_('บันทึกการเชื่อมต่อ',
+      'URL (' + touched.join(', ') + ')' +
+      (tokenChanged.length ? ' · เปลี่ยน token (' + tokenChanged.join(', ') + ')' : ''));   // ไม่เขียนค่า token ลง log
+    return { ok: true, section: 'conn', tokenChanged: tokenChanged.length };
+  }
+
+  if (section === 'pin') {
+    var np = String(obj.newPin || '').trim();
+    var cf = String(obj.confirmPin || '').trim();
     if (!/^\d{6}$/.test(np)) throw new Error('PIN ใหม่ต้องเป็นตัวเลข 6 หลัก');
+    if (np !== cf) throw new Error('PIN ใหม่กับช่องยืนยันไม่ตรงกัน');
     if (np === PIN_DEFAULT) throw new Error('PIN ใหม่ซ้ำกับค่าเริ่มต้น กรุณาตั้งเลขอื่น');
     props.setProperty('ADMIN_PIN', hashPin_(np));
     props.deleteProperty('PIN_IS_DEFAULT');
+    log_('เปลี่ยน PIN ผู้ดูแล', '');                          // ไม่เขียนค่า PIN ลง log
+    return { ok: true, section: 'pin', pinChanged: true };
   }
-  log_('บันทึกตั้งค่า', 'Sync URL/Token (' + touched.join(', ') + ')' + (np ? ' + เปลี่ยน PIN' : ''));
-  return { ok: true, pinChanged: !!np };
+
+  throw new Error('ไม่รู้จักส่วนที่จะบันทึก');
 }
 
 /* ====================== Helpers ====================== */

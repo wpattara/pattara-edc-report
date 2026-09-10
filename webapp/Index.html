@@ -11,6 +11,8 @@
   --paper:#F6F4EF; --card:#FFFFFF; --ink:#20313B; --mut:#64758A;
   --line:#E4E0D6; --teal:#0E6E5C; --tealsoft:#E4F1ED; --red:#B3261E;
   --brass:#A9843F; --gold:#D9B44A;
+  /* alias ให้บล็อก DateRange มาตรฐานใช้ชื่อสีเดิมของมันได้ ไม่ต้องแก้โค้ดในสกิล */
+  --green:#0E6E5C; --green-dark:#0B5648; --muted:#64758A;
   --sbbg:#0F3D36; --sbtext:#DCE9E5; --sbmut:#8FB0A8;
 }
 *{box-sizing:border-box}
@@ -219,8 +221,21 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 
 /* ---------- settings ---------- */
 #settingsScreen{display:none}
-.set-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5;
-  background:var(--paper);padding:8px 0 12px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.setcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.settings-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mtabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.mtabs button{border:0;background:transparent;padding:8px 13px;font-size:13px;color:var(--mut);
+  border-bottom:2px solid transparent;font-family:inherit;cursor:pointer}
+.mtabs button.active{color:var(--teal);font-weight:700;border-bottom-color:var(--teal)}
+.mtabs button.dirty::after{content:'•';color:var(--red);margin-left:5px;font-weight:700}
+.hidden{display:none!important}
+.tokchip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:4px 10px;
+  border-radius:999px;background:var(--tealsoft);color:var(--teal);font-family:ui-monospace,monospace}
+.tokchip.none{background:#FDECEA;color:var(--red);font-family:inherit}
+.savebar{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.testout{font-size:12.5px;line-height:1.5;margin-top:8px}
+.testout.ok{color:var(--teal)} .testout.bad{color:var(--red)}
+.rdonly{font-family:ui-monospace,monospace;font-size:13px;color:var(--mut)}
 .sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
 .sec h3{margin:0 0 10px;font-size:15px}
 .sec .hint{font-size:12px;color:var(--mut);margin:-6px 0 10px}
@@ -239,6 +254,41 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--red);color:#fff;
   padding:10px 18px;border-radius:10px;display:none;z-index:60;max-width:80vw}
 #toast.ok{background:var(--teal)}
+
+/* ═══ DatePicker — ปฏิทินเดียว จิ้มวันเดียว/ช่วงวัน (สกิล date-picker) ═══ */
+.dr-wrap{position:relative;display:inline-block}
+.dr-btn{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;background:#fff;border:1.4px solid var(--line);border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14px;color:var(--ink);cursor:pointer}
+.dr-btn:hover{border-color:var(--green)}
+.dr-btn.empty{color:var(--muted)}
+.dr-btn .dr-ico{width:16px;height:16px;flex:none;color:var(--green)}
+.dr-pop{display:none;position:fixed;top:0;left:0;z-index:200;width:300px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 10px 28px rgba(16,44,38,.16)}
+.dr-pop.open{display:block}
+.dr-quick{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.dr-quick button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:3px 10px;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer}
+.dr-quick button:hover{border-color:var(--green);color:var(--green)}
+.dr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dr-head b{font-size:14px}
+.dr-nav{border:none;background:none;cursor:pointer;color:var(--muted);font-size:17px;line-height:1;padding:3px 9px;border-radius:6px}
+.dr-nav:hover{background:#F1F5F4;color:var(--ink)}
+.dr-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dr-dow{text-align:center;font-size:11px;color:var(--muted);padding:4px 0}
+.dr-day{text-align:center;font-size:13px;padding:6px 0;border-radius:7px;cursor:pointer;border:1px solid transparent;user-select:none}
+.dr-day:hover{background:#EDF4F2}
+.dr-day.out{color:#C4CDCA}
+.dr-day.dis{color:#D3D9D6;cursor:not-allowed}
+.dr-day.dis:hover{background:transparent}
+.dr-day.today{border-color:var(--green);font-weight:600}
+.dr-day.in{background:#E4F0EC;border-radius:0}
+.dr-day.edge{background:var(--green);color:#fff;font-weight:600}
+.dr-day.edge.start{border-radius:7px 0 0 7px}
+.dr-day.edge.end{border-radius:0 7px 7px 0}
+.dr-day.edge.only{border-radius:7px}
+.dr-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px}
+.dr-sum{flex:1;min-width:0;font-size:12px;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-clear{flex:none;border:none;background:none;padding:0;font-family:inherit;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer}
+.dr-clear:hover{color:var(--green)}
+.dr-apply{background:var(--green);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:13px;cursor:pointer;flex:none}
+.dr-apply:hover{background:var(--green-dark)}
 
 /* ---------- print ---------- */
 #printArea{display:none}
@@ -364,15 +414,8 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
       <div class="toolbar">
         <input type="text" id="q" placeholder="ค้นหาทุกฟิลด์…">
         <select id="store"><option value="">ทุกสาขา</option></select>
-        <span class="rangewrap">
-          <button class="rangebtn withico" id="rangeBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-calendar"/></svg><span id="rangeLabel">ทั้งหมด</span></button>
-          <input type="hidden" id="from"><input type="hidden" id="to">
-          <div class="cal" id="cal" style="display:none"></div>
-        </span>
-        <button class="chip" data-r="today">วันนี้</button>
-        <button class="chip" data-r="tm">เดือนนี้</button>
-        <button class="chip" data-r="lm">เดือนที่แล้ว</button>
-        <button class="chip" data-r="all">ทั้งหมด</button>
+        <button type="button" id="rangeBtn"></button>
+        <input type="hidden" id="from"><input type="hidden" id="to">
         <button class="btn pri" id="btnLoad">ดึงข้อมูล</button>
       </div>
 
@@ -445,6 +488,168 @@ function toast(msg, ok){
 function setNotice(html,err){
   $('notice').innerHTML = html ? '<div class="notice'+(err?' err':'')+'">'+html+'</div>' : '';
 }
+
+/* ═══════════════════════════════════════════════════════════════
+ * DateRange — ตัวเลือกวัน/ช่วงวัน ปฏิทินเดือนเดียว (สกิล date-picker · ต้นแบบจากระบบเดลิเวอรี่)
+ *   แสดง พ.ศ. (opts.year='ce' = ค.ศ.) · ส่งค่า ค.ศ. yyyy-MM-dd เสมอ
+ *   opts.mode  'filter' (ตั้งต้น: มีปุ่ม "ทั้งหมด" คืน {from:'',to:''}) | 'pick' (ช่องกรอก: ไม่มีทั้งหมด **ไม่มีปุ่มลัด** — เจ้าของเคาะ 08/09/2569 · ใส่ opts.quick เองถ้าจำเป็น)
+ *   opts.single true = จิ้มวันเดียวแล้วใช้ทันที (from=to) · opts.min / opts.max 'yyyy-MM-dd' จิ้มนอกช่วงไม่ได้
+ *   opts.placeholder ข้อความตอนยังไม่เลือก · opts.clearable ปุ่ม "ล้าง" ใน mode pick · opts.align 'right'
+ *   opts.from/opts.to ค่าเริ่ม ('' ได้) · opts.onApply(range) ยิงตอนกด "ใช้ช่วงนี้" หรือปุ่มลัด เท่านั้น
+ *   ป๊อปอัปเป็น position:fixed วางตามตำแหน่งปุ่ม (CRM 08/09/2569: การ์ดฟอร์มมี overflow:hidden บังปฏิทินครึ่งใบ) — พลิกขึ้นบนเองถ้าชิดขอบล่าง เลื่อนหน้าแล้วตามปุ่ม
+ * บทเรียนที่ห้ามถอย (เดลิเวอรี่ 03/09/2569):
+ *   1) คลิกในป๊อปอัปต้อง stopPropagation ไม่งั้นตัวเช็ค "คลิกนอกกรอบ" ปิดปฏิทินทุกครั้งที่จิ้ม (node ถูก render ใหม่)
+ *   2) hover/จิ้มวัน ให้ paintDays() ทาสีเฉย ๆ ห้าม render() ใหม่ทั้งกริด ไม่งั้น mouseenter วนไม่จบ คลิกไม่ติด
+ * ═══════════════════════════════════════════════════════════════ */
+var DateRange = (function () {
+  var MONTH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var MON_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var DOW = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  var ICON = '<svg class="dr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>';
+
+  function pad(n){ return (n<10?'0':'')+n; }
+  function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function parse(s){ var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(Number(m[1]),Number(m[2])-1,Number(m[3])) : null; }
+  function todayYmd(){ return ymd(new Date()); }
+  function shift(days){ var d=new Date(); d.setDate(d.getDate()+days); return ymd(d); }
+  function yearOf(d, ce){ return d.getFullYear() + (ce ? 0 : 543); }
+  /** 'yyyy-MM-dd' → '24 ส.ค. 2569' (ce=true → 24/08/2026) */
+  function fmt(s, ce){
+    var d=parse(s); if(!d) return '';
+    return ce ? pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear() : d.getDate()+' '+MON_SHORT[d.getMonth()]+' '+yearOf(d, ce);
+  }
+  function label(from, to, ce, placeholder){
+    if(!from && !to) return placeholder || 'ทุกช่วงเวลา';
+    if(from && to && from===to) return fmt(from, ce);
+    if(from && !to) return 'ตั้งแต่ '+fmt(from, ce);
+    if(!from && to) return 'ถึง '+fmt(to, ce);
+    var a=parse(from), b=parse(to);
+    if(!ce && a && b && a.getMonth()===b.getMonth() && a.getFullYear()===b.getFullYear()) return a.getDate()+' – '+fmt(to, ce);
+    return fmt(from, ce)+' – '+fmt(to, ce);
+  }
+  function lastDays(n){ var end=new Date(), start=new Date(); start.setDate(start.getDate()-(Number(n||7)-1)); return {from:ymd(start), to:ymd(end)}; }
+  function thisMonth(){ var n=new Date(); return {from:ymd(new Date(n.getFullYear(), n.getMonth(), 1)), to:todayYmd()}; }
+
+  function attach(btn, opts){
+    opts = opts || {};
+    var mode = opts.mode || 'filter', ce = opts.year === 'ce';
+    var def = mode === 'pick' ? {from:'', to:''} : lastDays(7);
+    var state = { from: opts.from!==undefined ? opts.from : def.from, to: opts.to!==undefined ? opts.to : def.to };
+    var draft = { from:state.from, to:state.to, picking:false, hover:'' };
+    var view = parse(state.from) || new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
+    var min = opts.min || '', max = opts.max || '';
+    var quick = opts.quick || (mode === 'pick' ? [] : [['วันนี้', 'today'], ['7 วัน', '7d'], ['เดือนนี้', 'month'], ['เดือนก่อน', 'prev'], ['ทั้งหมด', 'all']]);
+
+    var wrap=document.createElement('span'); wrap.className='dr-wrap';
+    btn.parentNode.insertBefore(wrap, btn); wrap.appendChild(btn);
+    var pop=document.createElement('div'); pop.className='dr-pop';
+    wrap.appendChild(pop);
+    pop.addEventListener('click', function(e){ e.stopPropagation(); });   // บทเรียนข้อ 1
+    btn.classList.add('dr-btn'); btn.type='button';
+    paintButton();
+
+    btn.addEventListener('click', function(e){ e.stopPropagation(); if(pop.classList.contains('open')) close(); else open(); });
+    document.addEventListener('click', function(e){ if(pop.classList.contains('open') && !wrap.contains(e.target)) close(); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && pop.classList.contains('open')) close(); });
+
+    function allowed(s){ return !(min && s<min) && !(max && s>max); }
+    function open(){
+      draft={from:state.from, to:state.to, picking:false, hover:''};
+      var base=parse(state.from) || (min && parse(min) > new Date() ? parse(min) : new Date());
+      view=new Date(base.getFullYear(), base.getMonth(), 1);
+      pop.classList.add('open'); render(); place();
+    }
+    function close(){ pop.classList.remove('open'); }
+    // วางป๊อปอัปใต้ปุ่ม (fixed) — ไม่ถูก overflow ของกรอบแม่บัง · ชิดขอบล่างให้พลิกขึ้น · ชิดขอบขวาให้ขยับซ้าย
+    function place(){
+      if(!pop.classList.contains('open')) return;
+      var r=btn.getBoundingClientRect(), ph=pop.offsetHeight||360, pw=pop.offsetWidth||300;
+      var top=r.bottom+6; if(top+ph>window.innerHeight-8) top=Math.max(8, r.top-6-ph);
+      var left=(opts.align==='right') ? r.right-pw : r.left; if(left+pw>window.innerWidth-8) left=Math.max(8, window.innerWidth-8-pw);
+      pop.style.top=top+'px'; pop.style.left=Math.max(8,left)+'px';
+    }
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    function paintButton(){
+      var empty=!state.from && !state.to;
+      btn.classList.toggle('empty', !!(empty && opts.placeholder));
+      btn.innerHTML = ICON+'<span>'+label(state.from, state.to, ce, opts.placeholder)+'</span>';
+    }
+    function apply(from, to){ state.from=from; state.to=to; paintButton(); close(); if(opts.onApply) opts.onApply({from:state.from, to:state.to}); }
+    function runQuick(v){
+      var now=new Date(), a, b;
+      if(typeof v==='number'){ a=b=shift(v); }
+      else if(v==='today'){ a=b=todayYmd(); }
+      else if(v==='7d'){ var r=lastDays(7); a=r.from; b=r.to; }
+      else if(v==='month'){ a=ymd(new Date(now.getFullYear(), now.getMonth(), 1)); b=ymd(new Date(now.getFullYear(), now.getMonth()+1, 0)); }
+      else if(v==='prev'){ a=ymd(new Date(now.getFullYear(), now.getMonth()-1, 1)); b=ymd(new Date(now.getFullYear(), now.getMonth(), 0)); }
+      else { a=''; b=''; }
+      if(a && !allowed(a)) return;
+      apply(a, b);
+    }
+    function pick(s){
+      if(!allowed(s)) return;
+      if(opts.single){ draft.from=s; draft.to=s; draft.picking=false; apply(s, s); return; }
+      if(!draft.picking){ draft.from=s; draft.to=s; draft.picking=true; draft.hover=s; }
+      else { if(s<draft.from){ draft.to=draft.from; draft.from=s; } else draft.to=s; draft.picking=false; draft.hover=''; }
+      paintDays();   // บทเรียนข้อ 2
+    }
+    function classesFor(s, lo, hi, today, mo){
+      var cls='dr-day';
+      if(Number(s.slice(5,7))-1!==mo) cls+=' out';
+      if(!allowed(s)) cls+=' dis';
+      if(s===today) cls+=' today';
+      if(lo && hi && s>lo && s<hi) cls+=' in';
+      if(s===lo || s===hi){ cls+=' edge'; if(lo===hi) cls+=' only'; else if(s===lo) cls+=' start'; else cls+=' end'; }
+      return cls;
+    }
+    function range(){
+      var lo=draft.from, hi=draft.to;
+      if(draft.picking && draft.hover){ lo = draft.hover<draft.from ? draft.hover : draft.from; hi = draft.hover<draft.from ? draft.from : draft.hover; }
+      return [lo, hi];
+    }
+    function paintDays(){
+      var r=range(), today=todayYmd(), mo=view.getMonth();
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-d]'), function(c){ c.className=classesFor(c.getAttribute('data-d'), r[0], r[1], today, mo); });
+      var sum=pop.querySelector('.dr-sum');
+      if(sum) sum.textContent = draft.picking ? 'เลือกวันสิ้นสุด… (จิ้มวันเดิม = วันเดียว)' : label(draft.from, draft.to, ce, opts.placeholder);
+    }
+    function render(){
+      var y=view.getFullYear(), mo=view.getMonth(), startIdx=new Date(y, mo, 1).getDay(), today=todayYmd(), r=range();
+      var html='';
+      if(quick.length){
+        html+='<div class="dr-quick">'+quick.map(function(q, i){ return '<button type="button" data-q="'+i+'">'+q[0]+'</button>'; }).join('')+'</div>';
+      }
+      html+='<div class="dr-head"><button type="button" class="dr-nav" data-nav="-1">&#8249;</button><b>'+MONTH[mo]+' '+(ce?y:y+543)+'</b><button type="button" class="dr-nav" data-nav="1">&#8250;</button></div>'
+        +'<div class="dr-grid">'+DOW.map(function(d){ return '<div class="dr-dow">'+d+'</div>'; }).join('');
+      for(var i=0;i<42;i++){
+        var d=new Date(y, mo, 1-startIdx+i), s=ymd(d);
+        html+='<div class="'+classesFor(s, r[0], r[1], today, mo)+'" data-d="'+s+'">'+d.getDate()+'</div>';
+        if(i>=34 && d.getMonth()!==mo && (i+1)%7===0) break;
+      }
+      html+='</div><div class="dr-foot">'
+        +(mode==='pick' ? (opts.clearable ? '<button type="button" class="dr-clear">ล้าง</button>' : '') : '<button type="button" class="dr-clear">ทั้งหมด</button>')
+        +'<span class="dr-sum">'+(draft.picking ? 'เลือกวันสิ้นสุด… (จิ้มวันเดิม = วันเดียว)' : label(draft.from, draft.to, ce, opts.placeholder))+'</span>'
+        +(opts.single ? '' : '<button type="button" class="dr-apply">ใช้ช่วงนี้</button>')+'</div>';
+      pop.innerHTML=html;
+      var clr=pop.querySelector('.dr-clear'); if(clr) clr.addEventListener('click', function(){ apply('', ''); });
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-q]'), function(b){ b.addEventListener('click', function(){ runQuick(quick[Number(b.getAttribute('data-q'))][1]); }); });
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-nav]'), function(b){ b.addEventListener('click', function(){ view=new Date(view.getFullYear(), view.getMonth()+Number(b.getAttribute('data-nav')), 1); render(); }); });
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-d]'), function(c){
+        c.addEventListener('click', function(){ pick(c.getAttribute('data-d')); });
+        c.addEventListener('mouseenter', function(){ var s=c.getAttribute('data-d'); if(draft.picking && draft.hover!==s){ draft.hover=s; paintDays(); } });
+      });
+      var ap=pop.querySelector('.dr-apply'); if(ap) ap.addEventListener('click', function(){ apply(draft.from, draft.to); });
+      place();
+    }
+    return {
+      get: function(){ return {from:state.from, to:state.to}; },
+      set: function(from, to){ state.from=from||''; state.to=to||''; paintButton(); },
+      setMin: function(m){ min=m||''; }
+    };
+  }
+  return { attach:attach, fmt:fmt, label:label, today:todayYmd, lastDays:lastDays, thisMonth:thisMonth };
+})();
 
 /* ---------- ไอคอนจากชุดกลาง ---------- */
 function ICO(name){ return '<svg class="ico" aria-hidden="true"><use href="#i-'+name+'"/></svg>'; }
@@ -603,7 +808,7 @@ function loadData(){
       }
       setNotice(msgs.join('<br>'));
       var jb = $('jumpLatest');
-      if (jb) jb.onclick = function(){ jumpToMonth(S.latest.iso); };
+      if (jb) jb.onclick = function(){ gotoMonthOf(S.latest.iso); };
       overlay(false);
       renderHealth(); renderSyncInfo(); renderAll();
     })
@@ -714,7 +919,7 @@ function groupSummary(rows, mode){   // mode: 'daily' | 'branch'
 /* ---------- render ---------- */
 function renderAll(){
   if (S.ixEdit){ renderIxEditor(); return; }
-  renderCards(); renderTable();
+  renderCards(); renderTable(); wireEmptyMsg();
 }
 function renderCards(){
   var rows = filteredRows();
@@ -802,7 +1007,7 @@ function renderTable(){
       }
       return '<td class="'+(isN?'num':'')+'" title="'+s+'">'+s+'</td>';
     }).join('')+'</tr>';
-  }).join('') + (slice.length?'':'<tr><td class="empty" colspan="'+S.headers.length+'">— ไม่พบรายการตามเงื่อนไข —</td></tr>') + '</tbody>';
+  }).join('') + (slice.length?'':'<tr><td class="empty" colspan="'+S.headers.length+'">'+emptyMsg()+'</td></tr>') + '</tbody>';
 
   tbl.innerHTML = head+body;
   Array.prototype.forEach.call(tbl.querySelectorAll('thead th'), function(th){
@@ -915,7 +1120,7 @@ function doPrint(){
   var meta=[
     srcObj()?srcObj().label+' · '+srcObj().sublabel:'',
     (S.view==='daily'?'สรุปรายวัน':(S.view==='branch'?'สรุปรายสาขา':(t?t.label:''))),
-    'ช่วง '+fmtRangeLabel($('from').value, $('to').value),
+    'ช่วง '+DateRange.label($('from').value, $('to').value),
     $('store').value?('สาขา: '+$('store').value):'',
     $('q').value?('ค้นหา: "'+$('q').value+'"'):'',
     'พิมพ์เมื่อ '+new Date().toLocaleString('th-TH')
@@ -1103,100 +1308,54 @@ function saveIx(){
 var CAL = { open:false, y:0, m:0, pickFrom:'', pickTo:'' };   // m = 0-11
 var TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
-function calGrid(y, m){            // คืน cell 42 ช่อง (6 สัปดาห์) ของเดือนนั้น
-  var first = new Date(y, m, 1);
-  var start = first.getDay();      // 0=อาทิตย์
-  var days = new Date(y, m+1, 0).getDate();
-  var cells = [];
-  for (var i=0;i<42;i++){
-    var d = i - start + 1;
-    if (d < 1 || d > days) cells.push({ d:'', ymd:'', out:true });
-    else cells.push({ d:d, ymd: y+'-'+pad(m+1)+'-'+pad(d), out:false });
-  }
-  return cells;
-}
-function pickRange(cur, ymd){      // ตรรกะจิ้ม 2 ครั้ง: เริ่ม → สิ้นสุด (จิ้มก่อนวันเริ่ม = สลับให้)
-  if (!cur.from || (cur.from && cur.to)) return { from: ymd, to: '', done: false };
-  if (ymd < cur.from) return { from: ymd, to: cur.from, done: true };
-  return { from: cur.from, to: ymd, done: true };
-}
-function fmtRangeLabel(f, t){
-  var d = function(iso){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||''); return m? m[3]+'/'+m[2]+'/'+m[1] : ''; };
-  if (f && t) return f===t ? d(f) : d(f)+' – '+d(t);
-  if (f) return 'ตั้งแต่ '+d(f);
-  if (t) return 'ถึง '+d(t);
-  return 'ทั้งหมด';
-}
-function updateRangeLabel(){ $('rangeLabel').textContent = fmtRangeLabel($('from').value, $('to').value); }
+/* ปฏิทินช่วงวัน: ใช้บล็อก DateRange มาตรฐาน (สกิล date-picker) ที่ฝังไว้ด้านบน
+   ของเดิมเขียนเอง วาดกริดใหม่ทั้งใบทุกครั้งที่จิ้ม ซึ่งเป็นบั๊กที่สกิลสั่งห้าม */
+var RANGE = null;
 
-function calOpen(){
-  CAL.open = true;
-  CAL.pickFrom = $('from').value; CAL.pickTo = $('to').value;
-  var base = CAL.pickFrom || ymd(new Date());
-  CAL.y = +base.slice(0,4); CAL.m = +base.slice(5,7) - 1;
-  calRender();
-  $('cal').style.display = '';
+function currentRange(){ return RANGE ? RANGE.get() : { from: $('from').value, to: $('to').value }; }
+
+/** ตั้งช่วงเป็น "ทั้งเดือน" ของวันที่ที่ส่งมา แล้วดึงข้อมูลทันที */
+/** ข้อความตอนไม่พบรายการ — บอกช่วงที่กรองอยู่เสมอ เพราะสาเหตุที่พบบ่อยสุดคือช่วงวัน ไม่ใช่ไม่มีข้อมูล */
+function emptyMsg(){
+  var r = currentRange();
+  if (!r.from && !r.to) return 'ไม่พบรายการตามเงื่อนไขที่เลือก';
+  return 'ไม่พบรายการในช่วง ' + esc(DateRange.label(r.from, r.to)) +
+    '<br><button class="mini" id="btnAllRange" style="margin-top:10px">ดูทุกช่วงเวลา</button>';
 }
-function calClose(){ CAL.open = false; $('cal').style.display = 'none'; }
-function calRender(){
-  var today = ymd(new Date());
-  var f = CAL.pickFrom, t = CAL.pickTo;
-  var h = '<div class="cal-head">'
-    +'<button class="cal-nav" id="calPrev" type="button">‹</button>'
-    +'<b>'+TH_MONTHS[CAL.m]+' '+CAL.y+'</b>'
-    +'<button class="cal-nav" id="calNext" type="button">›</button></div>'
-    +'<div class="cal-grid">'
-    +['อา','จ','อ','พ','พฤ','ศ','ส'].map(function(w){return '<span class="wd">'+w+'</span>';}).join('');
-  calGrid(CAL.y, CAL.m).forEach(function(c){
-    if (c.out){ h += '<span class="d out"></span>'; return; }
-    var cls = 'd';
-    if (c.ymd === today) cls += ' today';
-    if (c.ymd === f || c.ymd === t) cls += ' sel';
-    else if (f && t && c.ymd > f && c.ymd < t) cls += ' mid';
-    h += '<span class="'+cls+'" data-ymd="'+c.ymd+'">'+c.d+'</span>';
-  });
-  h += '</div><div class="cal-hint">'+(f && !t ? 'เริ่ม '+fmtRangeLabel(f,'').replace('ตั้งแต่ ','')+' — จิ้มวันสิ้นสุด' : 'จิ้มวันเริ่มต้น แล้วจิ้มวันสิ้นสุด')+'</div>';
-  var el = $('cal');
-  el.innerHTML = h;
-  $('calPrev').onclick = function(e){ e.stopPropagation(); CAL.m--; if (CAL.m<0){CAL.m=11;CAL.y--;} calRender(); };
-  $('calNext').onclick = function(e){ e.stopPropagation(); CAL.m++; if (CAL.m>11){CAL.m=0;CAL.y++;} calRender(); };
-  Array.prototype.forEach.call(el.querySelectorAll('.d[data-ymd]'), function(cell){
-    cell.onclick = function(e){
-      e.stopPropagation();
-      var r = pickRange({ from: CAL.pickFrom, to: CAL.pickTo }, cell.getAttribute('data-ymd'));
-      CAL.pickFrom = r.from; CAL.pickTo = r.to;
-      if (r.done){
-        $('from').value = r.from; $('to').value = r.to;
-        updateRangeLabel(); calClose(); loadData();
-      } else calRender();
-    };
-  });
+function wireEmptyMsg(){
+  var ab = $('btnAllRange');
+  if (ab) ab.onclick = function(){
+    $('from').value=''; $('to').value='';
+    if (RANGE) RANGE.set('', '');
+    loadData();
+  };
 }
 
-/* ---------- quick ranges ---------- */
-function jumpToMonth(iso){
-  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||''));
-  if (!m) return;
-  var y = +m[1], mo = +m[2];
-  $('from').value = y+'-'+pad(mo)+'-01';
-  $('to').value = ymd(new Date(y, mo, 0));
-  updateRangeLabel();
-  loadData();
-}
-function setRange(code){
-  var now=new Date();
-  if (code==='today'){ $('from').value=ymd(now); $('to').value=ymd(now); }
-  else if (code==='tm'){ $('from').value=ymd(new Date(now.getFullYear(),now.getMonth(),1)); $('to').value=ymd(now); }
-  else if (code==='lm'){
-    $('from').value=ymd(new Date(now.getFullYear(),now.getMonth()-1,1));
-    $('to').value=ymd(new Date(now.getFullYear(),now.getMonth(),0));
-  }
-  else if (code==='all'){ $('from').value=''; $('to').value=''; }
-  updateRangeLabel();
+/** ตั้งช่วงเป็น "ทั้งเดือน" ของวันที่ที่ส่งมา แล้วดึงข้อมูลทันที */
+function gotoMonthOf(iso){
+  var m = String(iso||'').match(/^(\d{4})-(\d{2})-\d{2}$/); if (!m) return;
+  var y = Number(m[1]), mo = Number(m[2]) - 1;
+  var pad = function(v){ return (v<10?'0':'')+v; };
+  var last = new Date(y, mo+1, 0).getDate();
+  var f = y+'-'+pad(mo+1)+'-01', t = y+'-'+pad(mo+1)+'-'+pad(last);
+  $('from').value = f; $('to').value = t;
+  if (RANGE) RANGE.set(f, t);
   loadData();
 }
 
-/* ---------- settings (admin) ---------- */
+function initRangePicker(){
+  var d = DateRange.lastDays(7);
+  $('from').value = d.from; $('to').value = d.to;
+  RANGE = DateRange.attach($('rangeBtn'), {
+    mode: 'filter',
+    from: d.from, to: d.to,
+    onApply: function (r){
+      $('from').value = r.from; $('to').value = r.to;
+      loadData();                      /* ยิงเฉพาะตอนกด "ใช้ช่วงนี้" หรือปุ่มลัด */
+    }
+  });
+}
+
 function showScreen(sc){
   S.screen = sc;
   $('loginScreen').style.display = sc==='login' ? 'flex' : 'none';
@@ -1215,63 +1374,185 @@ function openSettings(){
     .withFailureHandler(function(e){ overlay(false); toast(e && e.message ? e.message : e); })
     .getSettings(S.pin);
 }
-function renderSettings(cfg){
-  /* PIN ยังเป็นค่าตั้งต้น = ใครก็เดาได้ ต้องเตือนให้เห็นชัด ๆ ไม่ใช่ปล่อยเงียบ ๆ */
-  var h = '';
-  if (cfg.pinIsDefault) {
-    h += '<div style="background:#FDECEA;border:1px solid var(--red);border-radius:8px;'+
-         'padding:10px 12px;margin-bottom:12px;color:var(--red);font-size:13px;line-height:1.6">'+
-         '<b>'+ICO('alert-triangle')+'PIN ผู้ดูแลยังเป็นค่าเริ่มต้น</b><br>'+
-         'ใครก็เดาได้ กรุณาตั้ง PIN ใหม่ที่ช่องด้านล่าง แล้วกดบันทึกการตั้งค่า'+
-         '</div>';
+var SET = { cfg:null, tab:'A', dirty:{A:false,C:false,P:false} };
+
+function setTab(t){
+  var cur = SET.tab;
+  if (cur !== t && SET.dirty[cur]){
+    if (!confirm('แท็บนี้ยังมีของที่แก้แล้วไม่ได้บันทึก ออกจากแท็บนี้ไหม? (การแก้ไขจะหายไป)')) return;
+    SET.dirty[cur] = false;
   }
-  h += '<div class="set-actions">'+
-    '<button class="btn pri withico" id="btnSetSave"><svg class="ico" aria-hidden="true"><use href="#i-save"/></svg><span>บันทึกการตั้งค่า</span></button>'+
-    '<button class="btn" id="btnSetBack">กลับโดยไม่บันทึก</button>'+
-    '<span style="font-size:12px;color:var(--mut)">ค่าเก็บใน Script Properties — ไม่แตะชีตข้อมูล มีผลทันทีหลังบันทึก</span>'+
+  SET.tab = t;
+  ['A','C','P'].forEach(function(k){
+    $('tab'+k).classList.toggle('active', k===t);
+    $('tab'+k).classList.toggle('dirty', !!SET.dirty[k]);
+    $('pane'+k).classList.toggle('hidden', k!==t);
+  });
+}
+function markDirty(k){ SET.dirty[k] = true; $('tab'+k).classList.add('dirty'); }
+function clearDirty(k){ SET.dirty[k] = false; $('tab'+k).classList.remove('dirty'); }
+
+function renderSettings(cfg){
+  SET.cfg = cfg; SET.tab = 'A'; SET.dirty = {A:false,C:false,P:false};
+
+  /* ---- แท็บ A: ป้ายแอป ---- */
+  var A = '<div class="sec"><h3>ป้ายแอป</h3>'+
+    '<div class="hint">ชื่อและคำอธิบายที่แสดงในแถบซ้ายและหน้าเข้าใช้งาน</div>'+
+    '<div class="frow"><label>ชื่อแอป</label><input class="sin wide" id="setAppName" value="'+esc(cfg.appName||'')+'"></div>'+
+    '<div class="frow"><label>คำอธิบาย</label><input class="sin wide" id="setAppDesc" value="'+esc(cfg.appDesc||'')+'" placeholder="เช่น Pattara Group · ฝ่ายบัญชี"></div>'+
+    '<div class="frow"><label>ลิงก์คู่มือ</label><input class="sin wide" id="setManual" value="'+esc(cfg.manualUrl||'')+'" placeholder="https://docs.google.com/document/d/…"></div>'+
+    '<div class="hint">เว้นลิงก์คู่มือว่างไว้ เมนูคู่มือจะถูกซ่อน</div>'+
+    '<div class="frow"><label>เวอร์ชัน</label><span class="rdonly">'+esc(cfg.appVersion||'')+'</span>'+
+      '<span style="font-size:11.5px;color:var(--mut)">ระบบเติมให้อัตโนมัติ ไม่มีช่องให้กรอก</span></div>'+
+    '<div class="savebar"><button class="btn pri withico" id="btnSaveBrand">'+ICO('save')+'<span>บันทึกป้ายแอป</span></button></div>'+
     '</div>';
+
+  /* ---- แท็บ C: การเชื่อมต่อ ---- */
+  var C = '';
   (cfg.sources||[]).forEach(function(sc){
     var p = BOOTSTRAP.sources.filter(function(x){return x.key===sc.key;})[0];
     var dot = p ? '<span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+esc(p.color)+';margin-right:6px"></span>' : '';
-    h += '<div class="sec"><h3>'+dot+ICO('refresh-cw')+' Sync — '+esc(sc.label+' · '+sc.sublabel)+'</h3>'+
-      '<div class="hint">จากไฟล์ SyncEndpoint ในโปรเจกต์สคริปต์ของชีตนั้น (Deploy เป็น Web app แบบ Anyone) — ใส่ครบทั้งคู่ ปุ่ม Sync ของชิปนี้จึงทำงาน</div>'+
+    var chip = sc.hasToken
+      ? '<span class="tokchip">ตั้งค่าแล้ว ('+esc(sc.tokenMask)+')</span>'
+      : '<span class="tokchip none">ยังไม่ตั้งค่า</span>';
+    C += '<div class="sec"><h3>'+dot+ICO('refresh-cw')+' '+esc(sc.label+' · '+sc.sublabel)+'</h3>'+
+      '<div class="hint">URL มาจาก SyncEndpoint ในโปรเจกต์สคริปต์ของชีตนั้น (deploy เป็น Web app · ผู้ที่มีสิทธิ์เข้าถึง = ทุกคน)</div>'+
       '<div class="frow"><label>Sync URL</label><input class="sin wide" id="setUrl_'+esc(sc.key)+'" value="'+esc(sc.syncUrl||'')+'" placeholder="https://script.google.com/macros/s/…/exec"></div>'+
-      '<div class="frow"><label>Sync Token</label><input class="sin wide" id="setToken_'+esc(sc.key)+'" value="'+esc(sc.syncToken||'')+'"></div></div>';
+      '<div class="frow"><label>Sync Token</label>'+chip+
+        '<button class="mini" id="btnTokChg_'+esc(sc.key)+'">เปลี่ยน Token</button></div>'+
+      '<div class="frow hidden" id="rowTok_'+esc(sc.key)+'"><label>Token ใหม่</label>'+
+        '<input class="sin wide" id="setToken_'+esc(sc.key)+'" placeholder="วางค่าใหม่ที่ได้จาก rotateSyncToken()">'+
+        '<span style="font-size:11.5px;color:var(--mut)">เว้นว่าง = ไม่เปลี่ยนของเดิม</span></div>'+
+      '<div class="savebar">'+
+        '<button class="btn pri withico" id="btnSaveConn_'+esc(sc.key)+'">'+ICO('save')+'<span>บันทึก</span></button>'+
+        '<button class="btn" id="btnTest_'+esc(sc.key)+'">ทดสอบการเชื่อมต่อ</button>'+
+      '</div>'+
+      '<div class="testout" id="testOut_'+esc(sc.key)+'"></div></div>';
   });
-  h += '<div class="sec"><h3>'+ICO('book-open')+' คู่มือการใช้งาน</h3>'+
-    '<div class="hint">ใส่ลิงก์ Google Doc ของคู่มือ — เว้นว่างไว้ เมนูคู่มือจะถูกซ่อน</div>'+
-    '<div class="frow"><label>ลิงก์คู่มือ</label>'+
-    '<input class="sin wide" id="setManual" value="'+esc(cfg.manualUrl||'')+'" placeholder="https://docs.google.com/document/d/…"></div></div>';
 
-  h += '<div class="sec"><h3>'+ICO('lock')+' ความปลอดภัย</h3>'+
-    '<div class="frow"><label>เปลี่ยน PIN</label><input class="sin" id="setPin" type="password" inputmode="numeric" maxlength="6" placeholder="ตัวเลข 6 หลัก">'+
-    '<span style="font-size:11.5px;color:var(--mut)">เว้นว่าง = ไม่เปลี่ยน — ใช้ร่วมกันทุกชิป</span></div>'+
-    '<div class="hint">เก็บแบบเข้ารหัส เปิดดูย้อนหลังไม่ได้ — ถ้าลืม ให้ผู้ดูแลเปิด Apps Script ของแอปนี้แล้วกดเรียกใช้ฟังก์ชัน resetAdminPin()</div></div>';
-  $('settingsScreen').innerHTML = h;
-  $('btnSetSave').onclick = function(){ saveSettingsUi(cfg); };
-  $('btnSetBack').onclick = function(){ showScreen('data'); };
-}
-function saveSettingsUi(cfg){
-  var np = $('setPin').value.trim();
-  var payload = {
-    manualUrl: $('setManual').value.trim(),
-    newPin: np,
-    sources: (cfg.sources||[]).map(function(sc){
-      return { key: sc.key,
-               syncUrl: $('setUrl_'+sc.key).value.trim(),
-               syncToken: $('setToken_'+sc.key).value.trim() };
-    })
+  /* ---- แท็บ P: เปลี่ยน PIN ---- */
+  var P = '';
+  if (cfg.pinIsDefault){
+    P += '<div class="notice"><b>'+ICO('alert-triangle')+'PIN ผู้ดูแลยังเป็นค่าเริ่มต้น</b><br>'+
+         'ใครก็เดาได้ กรุณาตั้ง PIN ใหม่ด้านล่าง</div>';
+  }
+  P += '<div class="sec"><h3>เปลี่ยน PIN ผู้ดูแล</h3>'+
+    '<div class="frow"><label>PIN ใหม่</label><input class="sin" id="setPin" type="password" inputmode="numeric" maxlength="6" placeholder="ตัวเลข 6 หลัก"></div>'+
+    '<div class="frow"><label>ยืนยัน PIN</label><input class="sin" id="setPin2" type="password" inputmode="numeric" maxlength="6" placeholder="พิมพ์ซ้ำอีกครั้ง"></div>'+
+    '<div class="hint">เก็บแบบเข้ารหัส เปิดดูย้อนหลังไม่ได้ — ถ้าลืม ให้ผู้ดูแลเปิด Apps Script ของแอปนี้แล้วเรียกใช้ฟังก์ชัน resetAdminPin() · เปลี่ยนแล้วไม่ต้องออกจากระบบ</div>'+
+    '<div class="savebar"><button class="btn pri withico" id="btnSavePin">'+ICO('save')+'<span>บันทึก PIN ใหม่</span></button></div>'+
+    '</div>';
+
+  $('settingsScreen').innerHTML =
+    '<div class="setcard">'+
+      '<div class="settings-head"><b style="font-size:16px">ตั้งค่าระบบ</b>'+
+        '<button class="btn withico" id="btnSetBack">'+ICO('arrow-left')+'<span>กลับหน้าข้อมูล</span></button></div>'+
+      '<div class="mtabs">'+
+        '<button id="tabA" class="active">ป้ายแอป</button>'+
+        '<button id="tabC">การเชื่อมต่อ</button>'+
+        '<button id="tabP">เปลี่ยน PIN</button>'+
+      '</div>'+
+      '<div id="paneA">'+A+'</div>'+
+      '<div id="paneC" class="hidden">'+C+'</div>'+
+      '<div id="paneP" class="hidden">'+P+'</div>'+
+    '</div>';
+
+  $('btnSetBack').onclick = function(){
+    var d = SET.dirty;
+    if ((d.A||d.C||d.P) && !confirm('ยังมีของที่แก้แล้วไม่ได้บันทึก ออกจากหน้าตั้งค่าไหม?')) return;
+    showScreen('data');
   };
-  overlay(true,'กำลังบันทึกการตั้งค่า…');
+  ['A','C','P'].forEach(function(k){ $('tab'+k).onclick = function(){ setTab(k); }; });
+
+  ['setAppName','setAppDesc','setManual'].forEach(function(id){ $(id).oninput = function(){ markDirty('A'); }; });
+  ['setPin','setPin2'].forEach(function(id){ $(id).oninput = function(){ markDirty('P'); }; });
+
+  $('btnSaveBrand').onclick = saveBrand;
+  $('btnSavePin').onclick = savePin;
+
+  (cfg.sources||[]).forEach(function(sc){
+    var k = sc.key;
+    $('setUrl_'+k).oninput = function(){ markDirty('C'); };
+    $('btnTokChg_'+k).onclick = function(){
+      $('rowTok_'+k).classList.remove('hidden');
+      $('setToken_'+k).focus();
+      $('setToken_'+k).oninput = function(){ markDirty('C'); };
+    };
+    $('btnSaveConn_'+k).onclick = function(){ saveConn(k); };
+    $('btnTest_'+k).onclick = function(){ testConn(k); };
+  });
+}
+
+function busy(btn, on, textWhenBusy){
+  if (!btn) return;
+  btn.disabled = !!on;
+  var sp = btn.querySelector('span');
+  if (sp){
+    if (on){ sp.setAttribute('data-old', sp.textContent); sp.textContent = textWhenBusy || 'กำลังบันทึก…'; }
+    else if (sp.getAttribute('data-old')){ sp.textContent = sp.getAttribute('data-old'); }
+  }
+}
+
+function saveBrand(){
+  var b = $('btnSaveBrand');
+  busy(b, true);
   google.script.run
-    .withSuccessHandler(function(res){
-      overlay(false);
-      if (res.pinChanged && np) S.pin = np;
-      toast('บันทึกการตั้งค่าแล้ว (ทุกชิป)'+(res.pinChanged?' + เปลี่ยน PIN':''), true);
-      showScreen('data');
+    .withSuccessHandler(function(){
+      busy(b, false); clearDirty('A');
+      toast('บันทึกป้ายแอปแล้ว', true);
+      BOOTSTRAP.manualUrl = $('setManual').value.trim();
+      BOOTSTRAP.appName = $('setAppName').value.trim();
+      $('appName').textContent = BOOTSTRAP.appName;
+      renderNav(); fitAppName();
     })
-    .withFailureHandler(function(e){ overlay(false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
-    .saveSettings(S.pin, payload);
+    .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveSettings(S.pin, { section:'brand',
+      appName: $('setAppName').value, appDesc: $('setAppDesc').value, manualUrl: $('setManual').value });
+}
+
+function saveConn(key){
+  var b = $('btnSaveConn_'+key);
+  var tokInp = $('setToken_'+key);
+  busy(b, true);
+  google.script.run
+    .withSuccessHandler(function(){
+      busy(b, false); clearDirty('C');
+      toast('บันทึกการเชื่อมต่อแล้ว', true);
+      openSettings();                       /* โหลดใหม่เพื่อให้ chip ของ token ตรงกับของจริง */
+    })
+    .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveSettings(S.pin, { section:'conn', sources:[{ key:key,
+      syncUrl: $('setUrl_'+key).value, syncToken: tokInp ? tokInp.value : '' }] });
+}
+
+function savePin(){
+  var b = $('btnSavePin'), np = $('setPin').value.trim(), cf = $('setPin2').value.trim();
+  busy(b, true);
+  google.script.run
+    .withSuccessHandler(function(){
+      busy(b, false); clearDirty('P');
+      S.pin = np; $('setPin').value=''; $('setPin2').value='';
+      toast('เปลี่ยน PIN เรียบร้อย ใช้ต่อได้เลยไม่ต้องออกจากระบบ', true);
+      openSettings();
+    })
+    .withFailureHandler(function(e){ busy(b, false); toast(e && e.message ? e.message : e); })
+    .saveSettings(S.pin, { section:'pin', newPin: np, confirmPin: cf });
+}
+
+function testConn(key){
+  var b = $('btnTest_'+key), out = $('testOut_'+key);
+  b.disabled = true; out.className = 'testout'; out.textContent = 'กำลังทดสอบ…';
+  google.script.run
+    .withSuccessHandler(function(r){
+      b.disabled = false;
+      out.className = 'testout ' + (r.ok ? 'ok' : 'bad');
+      out.textContent = (r.ok ? 'ผ่าน — ' : 'ไม่ผ่าน — ') + r.message;
+    })
+    .withFailureHandler(function(e){
+      b.disabled = false; out.className='testout bad';
+      out.textContent = 'ไม่ผ่าน — ' + (e && e.message ? e.message : e);
+    })
+    .testSyncEndpoint(S.pin, key);
 }
 
 /* ---------- init / login ---------- */
@@ -1280,16 +1561,10 @@ function init(){
   $('from').value=ymd(new Date(now.getFullYear(),now.getMonth(),1));
   $('to').value=ymd(now);
 
-  Array.prototype.forEach.call(document.querySelectorAll('.chip'), function(c){
-    c.onclick=function(){ setRange(c.getAttribute('data-r')); };
-  });
   $('btnLoad').onclick=loadData;
   $('btnSync').onclick=startSyncFlow;
   $('btnRebuild').onclick=startRebuildFlow;
-  $('rangeBtn').onclick=function(e){ e.stopPropagation(); CAL.open ? calClose() : calOpen(); };
-  $('cal').onclick=function(e){ e.stopPropagation(); };
-  document.addEventListener('click', function(){ if (CAL.open) calClose(); });
-  updateRangeLabel();
+  initRangePicker();
   $('btnLogout').onclick=logout;
   $('q').oninput=function(){ S.page=1; renderAll(); };
   $('store').onchange=function(){ S.page=1; renderAll(); };
@@ -1358,10 +1633,9 @@ function logout(){
   HEALTH=null; BRANCHES=[];
   $('q').value='';
   $('store').innerHTML='<option value="">ทุกสาขา</option>';
-  var now=new Date();
-  $('from').value=ymd(new Date(now.getFullYear(),now.getMonth(),1));
-  $('to').value=ymd(now);
-  updateRangeLabel();
+  var d0 = DateRange.lastDays(7);
+  $('from').value=d0.from; $('to').value=d0.to;
+  if (RANGE) RANGE.set(d0.from, d0.to);
   setNotice(''); $('healthBar').innerHTML=''; $('cards').innerHTML='';
   $('tbl').className='data'; $('tbl').innerHTML=''; $('pager').innerHTML='';
   $('segRows').className='on'; $('segDaily').className=''; $('segBranch').className='';
