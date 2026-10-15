@@ -1408,6 +1408,15 @@ function renderSettings(cfg){
       '<div class="testout" id="testOut_'+esc(sc.key)+'"></div></div>';
   });
 
+  /* v1.13.0 รหัส SSO จาก Apps Center */
+  var so = cfg.sso || {};
+  C += '<div class="sec"><h3>เข้าจาก Apps Center (SSO)</h3>'+
+    '<div class="hint">ใส่รหัสแล้ว ผู้ดูแลที่กดเปิดแอปนี้ฝั่งผู้ดูแลจาก Pattara Apps Center เข้าได้เลยไม่ต้องใส่ PIN · คัดลอกจากพอร์ทัล › แก้ไขแอป › รหัส SSO · เว้นว่างแล้วบันทึก = ปิด SSO</div>'+
+    '<div class="frow"><label>รหัส SSO</label>'+(so.set ? '<span class="tokchip">ตั้งค่าแล้ว ('+esc(so.masked)+')</span>' : '<span class="tokchip none">ยังไม่ตั้งค่า</span>')+'</div>'+
+    '<div class="frow"><label>รหัสใหม่</label><input class="sin wide" id="setSso" type="password" autocomplete="off" placeholder="วางรหัส 64 ตัวจากพอร์ทัล"></div>'+
+    '<div class="savebar"><button class="btn pri withico" id="btnSaveSso">'+ICO('save')+'<span>บันทึกรหัส SSO</span></button></div>'+
+    '</div>';
+
   /* ---- แท็บ P: เปลี่ยน PIN ---- */
   var P = '';
   if (cfg.pinIsDefault){
@@ -1491,6 +1500,7 @@ function renderSettings(cfg){
 
   $('btnSaveBrand').onclick = saveBrand;
   $('btnSavePin').onclick = savePin;
+  $('btnSaveSso').onclick = saveSso;   // v1.13.0
 
   (cfg.sources||[]).forEach(function(sc){
     var k = sc.key;
@@ -1548,6 +1558,15 @@ function saveConn(key){
     .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
     .saveSettings(S.pin, { section:'conn', sources:[{ key:key,
       syncUrl: $('setUrl_'+key).value, syncToken: tokInp ? tokInp.value : '' }] });
+}
+
+function saveSso(){   /* v1.13.0 */
+  var b = $('btnSaveSso');
+  busy(b, true);
+  google.script.run
+    .withSuccessHandler(function(r){ busy(b, false); toast(r.message, true); openSettings(); })
+    .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveSettings(S.pin, { section:'sso', key: $('setSso').value });
 }
 
 function savePin(){
@@ -1624,10 +1643,29 @@ function init(){
   renderNav();
   renderSyncInfo();
   showScreen('login');
+  ssoEnter();   // v1.13.0
 
   fitAppName();
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAppName);
   var w_; window.addEventListener('resize', function(){ clearTimeout(w_); w_ = setTimeout(fitAppName, 120); });
+}
+/* v1.13.0 เปิดจาก Apps Center พร้อม ?sso=<ตั๋ว> → เข้าแบบผู้ดูแลเลย (บัตรผ่านใช้แทน PIN) · ตั๋วใช้ไม่ได้ = บอกที่การ์ด PIN */
+function ssoEnter(){
+  try {
+    google.script.url.getLocation(function(loc){
+      var t = loc && loc.parameter && loc.parameter.sso;
+      if (!t) return;
+      overlay(true,'กำลังเข้าสู่ระบบจาก Apps Center…');
+      google.script.run
+        .withSuccessHandler(function(r){
+          overlay(false);
+          if (r && r.ok){ if (S.role) return; S.pin = r.pin; enterApp('admin'); }
+          else if (!S.role && r && r.message) $('pinErr').textContent = r.message;
+        })
+        .withFailureHandler(function(){ overlay(false); })
+        .ssoLogin(t);
+    });
+  } catch (e) {}
 }
 function pinFail(msg){
   var card = $('loginCard'), inp = $('pin');

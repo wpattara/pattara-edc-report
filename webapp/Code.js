@@ -16,7 +16,7 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '1.12.3';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '1.13.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
                                  // 1.8.0 = สั่ง rebuild แท็บ query จากหน้าเว็บได้ (ผู้ดูแล)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 
@@ -244,7 +244,15 @@ function pinIsDefault_() {
 }
 
 function assertPin_(pin) {
+  if (ssoPassOk_(pin)) return;   // v1.13.0 บัตรผ่านจาก Apps Center (Sso.js)
   if (hashPin_(pin) !== adminPinHash_()) throw new Error('เฉพาะผู้ดูแลระบบ — PIN ไม่ถูกต้อง');
+}
+
+/** v1.13.0 เปิดจาก Pattara Apps Center พร้อมตั๋ว ?sso= (หน้าเว็บอ่านด้วย google.script.url)
+ *  ผ่าน = คืนบัตรผ่าน sso:… ให้หน้าเว็บใช้แทน PIN ทุกคำสั่ง (assertPin_ รับ) · ไม่ผ่าน = ok:false + ข้อความ */
+function ssoLogin(ticket) {
+  var r = ssoFromTicket_(String(ticket || ''));
+  return r.key ? { ok: true, pin: r.key, pinIsDefault: pinIsDefault_() } : { ok: false, message: r.err || '' };
 }
 
 /** ตรวจ PIN ตอน login ผู้ดูแล พร้อมกันเดารหัส: ผิดครบ 8 ครั้ง ล็อก 15 นาที */
@@ -727,6 +735,7 @@ function getSettings(pin) {
   return {
     ok: true,
     pinIsDefault: pinIsDefault_(),
+    sso: ssoKeyInfo_(),   // v1.13.0
     manualUrl: props.getProperty('APP_MANUAL_URL') || '',
     appName: props.getProperty('APP_NAME') || 'ระบบขึ้นเงินบัตรเครดิต',
     appDesc: props.getProperty('APP_DESC') || '',
@@ -824,6 +833,12 @@ function saveSettings(pin, obj) {
       'URL (' + touched.join(', ') + ')' +
       (tokenChanged.length ? ' · เปลี่ยน token (' + tokenChanged.join(', ') + ')' : ''));   // ไม่เขียนค่า token ลง log
     return { ok: true, section: 'conn', tokenChanged: tokenChanged.length };
+  }
+
+  if (section === 'sso') {   // v1.13.0 รหัส SSO จาก Apps Center — ว่าง = ปิด
+    var r = ssoSaveKey_(obj.key);
+    log_('รหัส SSO Apps Center', (r.old || '-') + ' → ' + (r.now || '-'));
+    return { ok: true, section: 'sso', message: r.msg };
   }
 
   if (section === 'pin') {
