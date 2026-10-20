@@ -14,8 +14,9 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '2.0.1';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '2.1.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
                                  // 2.0.1 = แท็บธนาคารต้องมี date_iso (MERCHANT_MAP เคยถูกนับเป็นธนาคาร)
+                                 // 2.1.0 = ชิป 3 ชั้น หน่วยงาน→สาขา→ธนาคาร (โลโก้จาก BankIcons.js) · ถอดชิปทุกธนาคาร · โหลดทุกแท็บครั้งเดียวกรองในเครื่อง
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 var TZ = 'Asia/Bangkok';
 var MAX_ROWS = 20000;            // เพดานแถวต่อการดึง 1 ครั้ง กันหน้าเว็บอืด
@@ -117,7 +118,7 @@ function appName_() {
 function doGet(e) {
   if (e && e.parameter && e.parameter.page === 'manual') {
     var m = HtmlService.createTemplateFromFile('Manual');
-    m.boot = JSON.stringify({
+    m.boot = jsonForScript_({
       appName: appName_(),
       appVersion: appVersionLabel_(),
       appIcon: getAppIcon_(),
@@ -128,11 +129,21 @@ function doGet(e) {
       .addMetaTag('viewport', 'width=device-width, initial-scale=1');
   }
   var t = HtmlService.createTemplateFromFile('Index');
-  t.bootstrap = JSON.stringify(buildBootstrap_());
+  t.bootstrap = jsonForScript_(buildBootstrap_());
   return t.evaluate()
     .setTitle(appName_())
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.DEFAULT);
+}
+
+/** JSON ที่จะฝังลง <script> ของหน้า template — escape / และ < (errorLog E1: HtmlService ตัด // ใน string ทิ้ง · base64 มี / ได้) */
+function jsonForScript_(obj) {
+  return JSON.stringify(obj).replace(/\//g, '\\/').replace(/</g, '\\u003c');
+}
+
+/** โลโก้ธนาคาร (BankIcons.js สร้างจาก tools/build_bank_icons.py) — ไม่มีไฟล์ = {} ชิปใช้ตัวอักษรแทน */
+function bankIcons_() {
+  try { return (typeof BANK_ICONS === 'object' && BANK_ICONS) ? BANK_ICONS : {}; } catch (e) { return {}; }
 }
 
 /** ค่าตั้งต้นของหน้า — ส่วนที่ต้องเปิดชีตห่อ try ไว้ หน้าเว็บต้องเปิดได้แม้ยังไม่ตั้งค่าชีต */
@@ -151,6 +162,7 @@ function buildBootstrap_() {
     etaxUrl: props.getProperty(PROP_ETAX) || '',
     configured: !!props.getProperty(PROP_SS),
     banks: [],
+    bankIcons: bankIcons_(),
     error: ''
   };
   if (out.configured) {

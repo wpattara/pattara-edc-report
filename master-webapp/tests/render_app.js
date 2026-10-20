@@ -28,7 +28,7 @@ function boot(configured) {
   return JSON.stringify({
     appVersion: 'v2.0.0 · 20.10.2026', manualUrl: url + '?page=manual', appName: 'ระบบขึ้นเงินบัตรเครดิต EDC', appDesc: '',
     appIcon: process.env.PREVIEW_ICON || '', appUrl: url, maxRows: 20000, cols: COLS, sumCols: ['sales', 'fee_vat', 'wht', 'net'],
-    etaxUrl: configured ? url : '', configured: configured, banks: configured ? ['KBANK', 'TTB', 'KTB', 'BBL', 'KRUNGSRI'] : [], error: ''
+    etaxUrl: configured ? url : '', configured: configured, banks: configured ? ['KBANK', 'TTB', 'KTB', 'BBL', 'KRUNGSRI'] : [], bankIcons: {}, error: ''
   });
 }
 // แถวจำลอง: ตรงกับโครง COLS (ค.ศ. dd/MM/yyyy · เงินเป็นตัวเลข · บางแถวรหัสสาขาว่าง)
@@ -44,7 +44,11 @@ var ROWS = [
   row('02/10/2026', 'KTB', 'OIL1-4', '6446909-05-000381', '', 'สาขา 00004', '000001644000244', '', '', '', 13386.40, 66.93, 4.69, 2.02, 0),
   row('03/10/2026', 'BBL', 'OIL1-4', '26276-13-01061', 'WATTANA OIL & SERVICE CO.,LTD.', 'สาขา 00004', '200206578957', 'A4', 'oil1', '', 800, 4, 0.28, 0.12, 0),
   row('03/10/2026', 'KRUNGSRI', 'GRAND RIVERSIDE', '26S-1608965', '', '', '950601542', '', '', 2, 9800, 220.5, 15.44, 6.62, 0, 'ใบออกวันถัดจากรายการ (รายการ 02-10-2026)'),
-  row('05/10/2026', 'KBANK', 'Amazon', '051026E00007367', 'บจก.วรวัฒน์คาเฟ่', 'สาขา 00005', '401013562257001', 'A5', 'amz', 1, 134, 1.14, 0.08, 0.03, 0)
+  row('05/10/2026', 'KBANK', 'Amazon', '051026E00007367', 'บจก.วรวัฒน์คาเฟ่', 'สาขา 00005', '401013562257001', 'A5', 'amz', 1, 134, 1.14, 0.08, 0.03, 0),
+  row('06/10/2026', 'KBANK', 'OIL1-4', '061026E00001111', 'บ.วัฒนาออยล์แอนด์เซอร์วิส จก.', 'สำนักงานใหญ่', '401012350966001', '', '', 2, 5200, 26, 1.82, 0, 0),
+  row('06/10/2026', 'TTB', 'OIL1-4', '001061026/0300-1', 'บจก.วัฒนาออยล์แอนด์เซอร์วิส', 'สำนักงานใหญ่', '110164316', '', '', '', 1320, 6.6, 0.46, 0, 0),
+  row('07/10/2026', 'KBANK', 'Amazon', '071026E00001234', 'บจก.วรวัฒน์คาเฟ่', 'สิงห์วัฒน์', '401015950464001', 'สิงห์วัฒน์', 'amz', 1, 210, 1.79, 0.13, 0.05, 0),
+  row('07/10/2026', 'KRUNGSRI', 'THE PARK', '26S-1612000', '', '', '950602367', '', '', 1, 1500, 21, 1.47, 0.63, 0)
 ];
 var STUB = [
   '<script>',
@@ -78,7 +82,7 @@ var STUB = [
   '    var go = { daily:function(){ setView("daily"); }, branch:function(){ setView("branch"); }, unit:function(){ setView("unit"); },',
   '               tech:function(){ document.getElementById("chkTech").checked=true; S.tech=true; renderTable(); },',
   '               settings:function(){ openSettings(); }, conn:function(){ openSettings(); setTimeout(function(){ setTab("C"); }, 60); },',
-  '               share:function(){ openShare(); }, kbank:function(){ selectBank("KBANK"); } };',
+  '               share:function(){ openShare(); }, oil:function(){ S.unit="OIL1-4"; renderPills(); renderHealth(); renderAll(); }, br:function(){ S.unit="OIL1-4"; S.branch="สาขา 00004"; renderPills(); renderAll(); }, bank:function(){ S.unit="OIL1-4"; S.bank="TTB"; renderPills(); renderAll(); } };',
   '    if(part && go[part]) setTimeout(go[part], 150); }, 30); } });',
   '</script>'
 ].join('\n');

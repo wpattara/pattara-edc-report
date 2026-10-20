@@ -65,6 +65,11 @@ function getJson(p) { return new Promise((res, rej) => http.get('http://127.0.0.
       const d = JSON.parse(await call('getData', [rest[0] || 'ALL', rest[1] || '', rest[2] || '']));
       out = { count: d.count, scanned: d.scanned, truncated: d.truncated, latest: d.latest, ms: d.ms, banks: d.banks, health: { rows: d.health.rows, merchants: d.health.merchants.length },
               runs: d.runs, headers: d.headers.length, sample: d.rows.slice(0, 2), lastRow: d.rows[d.rows.length - 1] };
+    } else if (cmd === 'units') {   // สรุป หน่วยงาน → ธนาคาร → สาขาในใบ/MERCHANT_ID/รหัสสาขา (นับใบ)
+      const d = JSON.parse(await call('getData', ['ALL', '', '']));
+      const k = n => d.keys.indexOf(n); const m = {};
+      d.rows.forEach(r => { const u = r[k('unit')], b = r[k('bank')], key = u + ' | ' + b + ' | ' + r[k('branch')] + ' | ' + r[k('merchant_id')] + ' | ' + (r[k('merchant_name')] || '') + ' | bc=' + r[k('branch_code')] + ' gc=' + r[k('group_code')]; m[key] = (m[key] || 0) + 1; });
+      out = Object.keys(m).sort().map(x => x + ' → ' + m[x]);
     } else throw new Error('ไม่รู้จักคำสั่ง ' + cmd);
     if (out && out.appIcon) out.appIcon = '(' + out.appIcon.length + ' ตัวอักษร)';
     console.log(JSON.stringify(out, null, 1));

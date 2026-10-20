@@ -83,8 +83,20 @@ main{flex:1;min-width:0;padding:18px 22px 30px}
 .pill.ic{width:92px;height:92px;padding:0;border-radius:22px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
 .pill.ic.on{border-width:3px}
 .pfall{width:40px;height:40px;border-radius:10px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:17px}
+.picon{width:40px;height:40px;border-radius:10px;display:block;object-fit:contain;background:#fff}
 .plabel{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .psub{font-size:9px;font-weight:500;color:var(--mut);line-height:1.2;max-width:86px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chiprow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.chiprow .rl{font-size:11.5px;color:var(--mut);min-width:60px}
+.chiprow .chip.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+.chiprow .chip .n{opacity:.7;font-size:11px;margin-left:4px}
+.bankrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.bankrow .rl{font-size:11.5px;color:var(--mut);min-width:60px}
+.bpill{font:inherit;cursor:pointer;border:1.5px solid var(--line);background:var(--card);border-radius:14px;padding:6px 12px 6px 8px;display:inline-flex;align-items:center;gap:8px;color:var(--ink);font-size:12.5px;font-weight:600}
+.bpill img{width:28px;height:28px;border-radius:7px;object-fit:contain;display:block;background:#fff}
+.bpill .pf{width:28px;height:28px;border-radius:7px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px}
+.bpill.on{border-width:2.5px}
+.bpill .n{font-weight:500;color:var(--mut);font-size:11px}
 
 .tabsbar{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);margin-bottom:12px;flex-wrap:wrap;gap:8px}
 .tabs{display:flex;gap:18px}
@@ -335,6 +347,8 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 
     <div id="dataScreen">
       <div class="pills" id="pills"></div>
+      <div class="chiprow" id="branchRow" style="display:none"></div>
+      <div class="bankrow" id="bankRow" style="display:none"></div>
       <div class="tabsbar">
         <div class="tabs"><button class="tab on" id="tabMain">รายการขึ้นเงิน</button></div>
         <div class="seg" id="seg">
@@ -347,8 +361,6 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 
       <div class="toolbar">
         <input type="text" id="q" placeholder="ค้นหาทุกฟิลด์…">
-        <select id="unit"><option value="">ทุกหน่วยงาน</option></select>
-        <select id="store"><option value="">ทุกสาขา</option></select>
         <button type="button" id="rangeBtn"></button>
         <input type="hidden" id="from"><input type="hidden" id="to">
         <button class="btn pri" id="btnLoad">ดึงข้อมูล</button>
@@ -396,7 +408,7 @@ table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-t
 <script>var BOOTSTRAP = <?!= bootstrap ?>;</script>
 <script>
 var S = {
-  screen:'login', role:null, pin:'', bank:'ALL', view:'rows',
+  screen:'login', role:null, pin:'', unit:'', branch:'', bank:'', view:'rows',   /* ชิป 3 ชั้น: หน่วยงาน (บังคับ) → สาขา ('' = ทุกสาขา) → ธนาคาร ('' = ทุกธนาคารของหน่วยงาน) */
   headers:[], keys:[], rows:[], truncated:false, latest:null, ms:0, runs:[],
   sortIdx:-1, sortDir:-1, page:1, per:100, tech:false
 };
@@ -662,24 +674,53 @@ function renderNav(){
   $('navData').onclick = function(){ showScreen('data'); };
 }
 
-/* ---------- ชิปธนาคาร ---------- */
-function bankKeys(){ return ['ALL'].concat(BOOTSTRAP.banks || []); }
-function renderPills(){
-  $('pills').innerHTML = bankKeys().map(function(k){
-    var st = bankStyle(k), on = k===S.bank;
-    var style = on ? 'style="border-color:'+esc(st.color)+';background:'+esc(st.color)+'14"' : '';
-    return '<button class="pill ic'+(on?' on':'')+'" '+style+' data-p="'+esc(k)+'" title="'+esc(st.label+(st.sub?' · '+st.sub:''))+'">'+
-      '<span class="pfall" style="background:'+esc(st.color)+'">'+esc(st.init || st.label.charAt(0))+'</span>'+
-      '<span class="plabel">'+esc(st.label)+'</span>'+(st.sub?'<span class="psub">'+esc(st.sub)+'</span>':'')+'</button>';
-  }).join('');
-  Array.prototype.forEach.call($('pills').querySelectorAll('.pill'), function(b){
-    b.onclick = function(){ selectBank(b.getAttribute('data-p')); };
-  });
+/* ---------- ชิป 3 ชั้น: หน่วยงาน → สาขา → ธนาคาร (ทั้งหมดสร้างจากข้อมูลที่โหลด ไม่ fix รายชื่อ) ---------- */
+/* ป้ายสาขา = branch_code จาก MERCHANT_MAP ถ้ามี · ยังไม่มีรหัส = เลขสาขาภาษีจากใบ (สำนักงานใหญ่ / สาขา 00001 …) · ไม่มีทั้งคู่ = (ไม่ระบุสาขา) */
+function brLabel(r){ var bc=colIdx('branch_code'), br=colIdx('branch'); return String(r[bc]||'').trim() || String(r[br]||'').trim() || '(ไม่ระบุสาขา)'; }
+function unitList(){                       // [{k, n}] เรียงตามจำนวนใบมาก→น้อย (Amazon, OIL1-4, OIL5-6, โรงแรม …)
+  var ui = colIdx('unit'), m = {}, out = [];
+  if (ui < 0) return out;
+  S.rows.forEach(function(r){ var u = String(r[ui]||'').trim() || '(ไม่ระบุหน่วยงาน)'; if (!m[u]){ m[u] = {k:u, n:0}; out.push(m[u]); } m[u].n++; });
+  return out.sort(function(a,b){ return b.n-a.n || a.k.localeCompare(b.k,'th'); });
 }
-function selectBank(k){
-  S.bank = k; renderPills();
-  S.sortIdx=-1; S.page=1;
-  loadData();
+function unitRows(){ var ui = colIdx('unit'); return S.rows.filter(function(r){ return (String(r[ui]||'').trim() || '(ไม่ระบุหน่วยงาน)') === S.unit; }); }
+function branchList(rows){ var m = {}, out = []; rows.forEach(function(r){ var k = brLabel(r); if (!m[k]){ m[k] = {k:k, n:0}; out.push(m[k]); } m[k].n++; }); return out.sort(function(a,b){ return a.k.localeCompare(b.k,'th'); }); }
+function bankList(rows){ var bi = colIdx('bank'), m = {}, out = []; rows.forEach(function(r){ var k = String(r[bi]||'').trim(); if (!m[k]){ m[k] = {k:k, n:0}; out.push(m[k]); } m[k].n++; }); return out.sort(function(a,b){ return b.n-a.n; }); }
+function unitInit(u){ return /^amaz/i.test(u) ? 'A' : (/^oil/i.test(u) ? 'O' : u.charAt(0).toUpperCase()); }
+function unitColor(u){ return /^amaz/i.test(u) ? '#018A4B' : (/^oil/i.test(u) ? '#0B57A4' : '#A9843F'); }
+function renderPills(){
+  var units = unitList();
+  if (!units.length){ $('pills').innerHTML=''; $('branchRow').style.display='none'; $('bankRow').style.display='none'; return; }
+  if (!units.some(function(u){ return u.k===S.unit; })){ S.unit = units[0].k; S.branch=''; S.bank=''; }
+  $('pills').innerHTML = units.map(function(u){
+    var on = u.k===S.unit, c = unitColor(u.k);
+    return '<button class="pill ic'+(on?' on':'')+'" '+(on?'style="border-color:'+c+';background:'+c+'14"':'')+' data-u="'+esc(u.k)+'" title="'+esc(u.k)+' · '+u.n.toLocaleString()+' ใบ">'+
+      '<span class="pfall" style="background:'+c+'">'+esc(unitInit(u.k))+'</span><span class="plabel">'+esc(u.k)+'</span><span class="psub">'+u.n.toLocaleString()+' ใบ</span></button>';
+  }).join('');
+  Array.prototype.forEach.call($('pills').querySelectorAll('.pill'), function(b){ b.onclick = function(){ S.unit = b.getAttribute('data-u'); S.branch=''; S.bank=''; S.page=1; renderPills(); renderHealth(); renderAll(); }; });
+
+  var rows = unitRows();
+  var brs = branchList(rows);
+  if (brs.length > 1){
+    if (S.branch && !brs.some(function(b){ return b.k===S.branch; })) S.branch='';
+    $('branchRow').style.display='';
+    $('branchRow').innerHTML = '<span class="rl">สาขา</span>'+
+      '<button class="chip'+(S.branch===''?' on':'')+'" data-b="">ทุกสาขา<span class="n">'+rows.length.toLocaleString()+'</span></button>'+
+      brs.map(function(b){ return '<button class="chip'+(S.branch===b.k?' on':'')+'" data-b="'+esc(b.k)+'">'+esc(b.k)+'<span class="n">'+b.n.toLocaleString()+'</span></button>'; }).join('');
+    Array.prototype.forEach.call($('branchRow').querySelectorAll('.chip'), function(b){ b.onclick = function(){ S.branch = b.getAttribute('data-b'); S.bank=''; S.page=1; renderPills(); renderAll(); }; });
+  } else { S.branch=''; $('branchRow').style.display='none'; $('branchRow').innerHTML=''; }
+
+  var brows = S.branch ? rows.filter(function(r){ return brLabel(r)===S.branch; }) : rows;
+  var banks = bankList(brows);
+  if (S.bank && !banks.some(function(b){ return b.k===S.bank; })) S.bank='';
+  $('bankRow').style.display = banks.length ? '' : 'none';
+  $('bankRow').innerHTML = '<span class="rl">ธนาคาร</span>'+banks.map(function(b){
+    var st = bankStyle(b.k), on = S.bank===b.k, icon = (BOOTSTRAP.bankIcons||{})[b.k];
+    return '<button class="bpill'+(on?' on':'')+'" style="'+(on?'border-color:'+esc(st.color)+';background:'+esc(st.color)+'14':'')+'" data-k="'+esc(b.k)+'" title="'+esc(st.label+(st.sub?' · '+st.sub:''))+(on?' — กดอีกครั้งเพื่อดูทุกธนาคาร':'')+'">'+
+      (icon ? '<img src="'+esc(icon)+'" alt="">' : '<span class="pf" style="background:'+esc(st.color)+'">'+esc(st.label.charAt(0))+'</span>')+
+      '<span>'+esc(st.label)+'</span><span class="n">'+b.n.toLocaleString()+' ใบ</span></button>';
+  }).join('')+(banks.length>1 && !S.bank ? '<span class="rl" style="min-width:0">แสดงทุกธนาคาร · กดโลโก้เพื่อดูทีละธนาคาร</span>' : '');
+  Array.prototype.forEach.call($('bankRow').querySelectorAll('.bpill'), function(b){ b.onclick = function(){ var k = b.getAttribute('data-k'); S.bank = (S.bank===k) ? '' : k; S.page=1; renderPills(); renderAll(); }; });
 }
 function setView(v){
   S.view=v;
@@ -702,10 +743,10 @@ function notConfiguredNotice(){
 function loadData(){
   if (!BOOTSTRAP.configured || BOOTSTRAP.error){ notConfiguredNotice(); S.headers=[]; S.rows=[]; renderAll(); return; }
   overlay(true);
-  var bank = S.bank;
+  var seq = (S._seq = (S._seq||0)+1);
   google.script.run
     .withSuccessHandler(function(res){
-      if (S.bank !== bank) return;
+      if (seq !== S._seq) return;   // มีการดึงใหม่ทับระหว่างรอ
       S.headers = res.headers; S.keys = res.keys; S.rows = res.rows;
       S.truncated = res.truncated; S.latest = res.latest || null; S.ms = res.ms; S.runs = res.runs || []; S.page = 1;
       HEALTH = res.health || null;
@@ -720,34 +761,16 @@ function loadData(){
       setNotice(msgs.join('<br>'));
       var jb = $('jumpLatest'); if (jb) jb.onclick = function(){ gotoMonthOf(S.latest.iso); };
       overlay(false);
-      fillFilters(); renderInfo(); renderHealth(); renderAll();
+      renderPills(); renderInfo(); renderHealth(); renderAll();
     })
     .withFailureHandler(function(e){
       overlay(false);
-      S.headers=[]; S.rows=[]; renderAll();
+      S.headers=[]; S.rows=[]; renderPills(); renderAll();
       toast('ดึงข้อมูลไม่สำเร็จ: '+(e && e.message ? e.message : e));
     })
-    .getData(bank, $('from').value, $('to').value);
+    .getData('ALL', $('from').value, $('to').value);   /* โหลดทุกแท็บครั้งเดียว ชิปหน่วยงาน/สาขา/ธนาคารกรองในเครื่อง */
 }
 
-/* ตัวกรองหน่วยงาน/สาขา สร้างจากข้อมูลที่โหลดมา (ไม่ต้องยิงเซิร์ฟเวอร์เพิ่ม) */
-function distinct(k){
-  var i = colIdx(k), m = {}, out = [];
-  if (i < 0) return out;
-  S.rows.forEach(function(r){ var v = String(r[i]||'').trim(); if (!m[v]){ m[v]=true; out.push(v); } });
-  return out.sort(function(a,b){ return a.localeCompare(b,'th'); });
-}
-function fillFilters(){
-  var cu = $('unit').value, cs = $('store').value;
-  var units = distinct('unit').filter(Boolean);
-  $('unit').innerHTML = '<option value="">ทุกหน่วยงาน</option>'+units.map(function(u){ return '<option value="'+esc(u)+'">'+esc(u)+'</option>'; }).join('');
-  $('unit').value = units.indexOf(cu)>=0 ? cu : '';
-  var stores = distinct('branch_code');
-  $('store').innerHTML = '<option value="">ทุกสาขา</option>'+stores.map(function(s){
-    return '<option value="'+esc(s||'__blank__')+'">'+(s ? esc(s) : '(ยังไม่มีรหัสสาขา)')+'</option>';
-  }).join('');
-  $('store').value = stores.indexOf(cs==='__blank__'?'':cs)>=0 ? cs : '';
-}
 function renderInfo(){
   $('latestInfo').textContent = S.latest ? 'ข้อมูลล่าสุดถึง '+S.latest.disp : '';
   $('runs').innerHTML = (S.runs||[]).map(function(r){
@@ -757,16 +780,22 @@ function renderInfo(){
   }).join('');
 }
 
-/* ---------- รหัสสาขาที่ยังว่าง (เตือน ไม่ล็อก export — เจ้าของเคาะ 20/10/2569 ใช้ข้อมูลเท่าที่มีก่อน) ---------- */
+/* ---------- รหัสสาขาที่ยังว่าง — นับเฉพาะหน่วยงานที่เลือก (เตือน ไม่ล็อก export — เจ้าของเคาะ 20/10/2569) ---------- */
 function renderHealth(){
   var el = $('healthBar');
-  if (!HEALTH || !HEALTH.rows){ el.innerHTML=''; return; }
-  var ms = HEALTH.merchants || [];
-  var list = ms.slice(0, 8).map(function(m){
-    return '<b>'+esc(bankLabel(m.bank))+' '+esc(m.id)+'</b>'+(m.name?' ('+esc(m.name)+')':'')+(m.unit?' · '+esc(m.unit):'')+' ×'+m.count;
-  }).join(' · ') + (ms.length > 8 ? ' · …อีก '+(ms.length-8)+' ร้าน' : '');
-  var h = '<b>'+ICO('alert-triangle')+'มี '+HEALTH.rows.toLocaleString()+' ใบที่ยังไม่มีรหัสสาขา</b> ('+ms.length+' ร้าน) — '+
-    'ตัวกรอง "สาขา" และสรุปรายสาขาจะรวมใบเหล่านี้ไว้ที่ "(ยังไม่มีรหัสสาขา)"<br>'+
+  var bc = colIdx('branch_code'), mid = colIdx('merchant_id'), nm = colIdx('merchant_name'), bk = colIdx('bank');
+  if (bc < 0 || !S.unit){ el.innerHTML=''; return; }
+  var miss = {}, order = [], total = 0;
+  unitRows().forEach(function(r){
+    if (String(r[bc]||'').trim()) return;
+    var k = r[bk]+'|'+r[mid];
+    if (!miss[k]){ miss[k] = { bank:r[bk], id:String(r[mid]||'')||'(ไม่มี MERCHANT_ID)', name:String(r[nm]||''), count:0 }; order.push(k); }
+    miss[k].count++; total++;
+  });
+  if (!total){ el.innerHTML=''; return; }
+  var ms = order.map(function(k){ return miss[k]; });
+  var list = ms.slice(0, 8).map(function(m){ return '<b>'+esc(bankLabel(m.bank))+' '+esc(m.id)+'</b>'+(m.name?' ('+esc(m.name)+')':'')+' ×'+m.count; }).join(' · ') + (ms.length > 8 ? ' · …อีก '+(ms.length-8)+' ร้าน' : '');
+  var h = '<b>'+ICO('alert-triangle')+esc(S.unit)+': '+total.toLocaleString()+' ใบยังไม่มีรหัสสาขา</b> ('+ms.length+' ร้าน) — ชิปสาขาจึงใช้เลขสาขาภาษีจากใบไปก่อน<br>'+
     'รหัสสาขา/กลุ่ม ใส่ที่แอปตัวโหลดใบกำกับ › ตาราง master › รหัสร้าน แล้วกด "อัปเดตแถวเก่าตาม MAP" '+
     (BOOTSTRAP.etaxUrl ? '<a class="mini withico" style="text-decoration:none;color:inherit" href="'+esc(BOOTSTRAP.etaxUrl)+'" target="_blank" rel="noopener">'+ICO('external')+'<span>เปิดแอปตัวโหลด</span></a> ' : '')+
     '<div style="margin-top:6px;font-size:12px">'+list+'</div>';
@@ -775,15 +804,12 @@ function renderHealth(){
 
 /* ---------- กรอง / สรุป (client-side) ---------- */
 function filteredRows(){
-  var ui = colIdx('unit'), si = colIdx('branch_code');
-  var unit = $('unit').value, store = $('store').value;
+  var ui = colIdx('unit'), bi = colIdx('bank');
   var q = $('q').value.trim().toLowerCase();
   return S.rows.filter(function(r){
-    if (unit && ui>=0 && String(r[ui])!==unit) return false;
-    if (store && si>=0){
-      var v = String(r[si]||'').trim();
-      if (store==='__blank__' ? v!=='' : v!==store) return false;
-    }
+    if (S.unit && ui>=0 && (String(r[ui]||'').trim() || '(ไม่ระบุหน่วยงาน)')!==S.unit) return false;
+    if (S.branch && brLabel(r)!==S.branch) return false;
+    if (S.bank && bi>=0 && String(r[bi])!==S.bank) return false;
     if (q){
       var hit=false;
       for (var i=0;i<r.length;i++){ if (String(r[i]).toLowerCase().indexOf(q)>=0){ hit=true; break; } }
@@ -801,12 +827,11 @@ function sumCols(){
   return (BOOTSTRAP.sumCols||[]).map(function(k){ return { name: S.headers[colIdx(k)] || k, idx: colIdx(k) }; }).filter(function(c){ return c.idx>=0; });
 }
 function groupSummary(rows, mode){   // 'daily' | 'branch' | 'unit'
-  var gi = mode==='branch' ? colIdx('branch_code') : (mode==='unit' ? colIdx('unit') : colIdx('date'));
+  var gi = mode==='unit' ? colIdx('unit') : colIdx('date');
   var sums = sumCols();
   var map = {}, order = [];
   rows.forEach(function(r){
-    var g0 = gi>=0 ? String(r[gi]||'').trim() : '';
-    var k = g0 || (mode==='branch' ? '(ยังไม่มีรหัสสาขา)' : '(ว่าง)');
+    var k = mode==='branch' ? brLabel(r) : ((gi>=0 ? String(r[gi]||'').trim() : '') || '(ว่าง)');
     if (!map[k]){ map[k] = { k:k, n:0, s:sums.map(function(){return 0;}) }; order.push(k); }
     var g = map[k]; g.n++;
     sums.forEach(function(c,i){ var v=r[c.idx]; if (typeof v==='number') g.s[i]+=v; });
@@ -829,7 +854,7 @@ function renderCards(){
   $('cards').innerHTML = html;
 }
 function isNumCol(i){ var t = colType(i); return t==='money' || t==='num'; }
-function groupLabel(mode){ return mode==='daily' ? 'วันที่' : (mode==='branch' ? 'รหัสสาขา' : 'หน่วยงาน'); }
+function groupLabel(mode){ return mode==='daily' ? 'วันที่' : (mode==='branch' ? 'สาขา' : 'หน่วยงาน'); }
 function renderTable(){
   var tbl = $('tbl');
   if (!S.headers.length){ tbl.innerHTML='<tbody><tr><td class="empty">'+emptyMsg()+'</td></tr></tbody>'; $('pager').innerHTML=''; return; }
@@ -912,8 +937,7 @@ function baseFileName(){
   else if (f)  range = 'ตั้งแต่ '+ddmmyyyy(f);
   else if (to) range = 'ถึง '+ddmmyyyy(to);
   else         range = 'ทั้งหมด';
-  var name = 'EDC '+bankLabel(S.bank)+' ขึ้นเงิน '+range;
-  if ($('unit').value) name += ' '+$('unit').value;
+  var name = 'EDC '+(S.unit||'')+(S.branch?' '+S.branch:'')+(S.bank?' '+bankLabel(S.bank):'')+' ขึ้นเงิน '+range;
   if (S.view === 'daily') name += ' (สรุปรายวัน)';
   else if (S.view === 'branch') name += ' (สรุปรายสาขา)';
   else if (S.view === 'unit') name += ' (สรุปรายหน่วยงาน)';
@@ -938,7 +962,7 @@ function exportXlsx(){
     var d=exportDataset();
     var ws=XLSX.utils.aoa_to_sheet([d.headers].concat(d.rows));
     var wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, xlsxTabName(bankLabel(S.bank)));
+    XLSX.utils.book_append_sheet(wb, ws, xlsxTabName((S.unit||'EDC')+(S.bank?' '+bankLabel(S.bank):'')));
     XLSX.writeFile(wb, fileName('xlsx'));
   };
   if (window.XLSX){ go(); return; }
@@ -952,11 +976,9 @@ function exportXlsx(){
 function doPrint(){
   var d=exportDataset();
   var meta=[
-    bankLabel(S.bank),
+    S.unit+(S.branch?' · สาขา '+S.branch:'')+(S.bank?' · '+bankLabel(S.bank):' · ทุกธนาคาร'),
     (S.view==='daily'?'สรุปรายวัน':(S.view==='branch'?'สรุปรายสาขา':(S.view==='unit'?'สรุปรายหน่วยงาน':'รายการขึ้นเงิน'))),
     'ช่วง '+DateRange.label($('from').value, $('to').value, true),
-    $('unit').value?('หน่วยงาน: '+$('unit').value):'',
-    $('store').value?('สาขา: '+($('store').value==='__blank__'?'(ยังไม่มีรหัสสาขา)':$('store').value)):'',
     $('q').value?('ค้นหา: "'+$('q').value+'"'):'',
     'พิมพ์เมื่อ '+DateRange.fmt(ymd(new Date()), true)+' '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())
   ].filter(Boolean).join(' · ');
@@ -1277,8 +1299,6 @@ function init(){
   initRangePicker();
   $('btnLogout').onclick=logout;
   $('q').oninput=function(){ S.page=1; renderAll(); };
-  $('unit').onchange=function(){ S.page=1; renderAll(); };
-  $('store').onchange=function(){ S.page=1; renderAll(); };
   $('chkTech').onchange=function(){ S.tech = this.checked; S.page=1; renderTable(); };
   $('segRows').onclick=function(){ setView('rows'); };
   $('segDaily').onclick=function(){ setView('daily'); };
@@ -1343,10 +1363,10 @@ function adminLogin(){
     .verifyPin(pin);
 }
 function logout(){
-  S.role=null; S.pin=''; S.headers=[]; S.keys=[]; S.rows=[]; S.latest=null; S.runs=[]; S.bank='ALL';
+  S.role=null; S.pin=''; S.headers=[]; S.keys=[]; S.rows=[]; S.latest=null; S.runs=[]; S.unit=''; S.branch=''; S.bank='';
   S.sortIdx=-1; S.page=1; S.view='rows'; S.tech=false; HEALTH=null;
   $('q').value=''; $('chkTech').checked=false;
-  $('unit').innerHTML='<option value="">ทุกหน่วยงาน</option>'; $('store').innerHTML='<option value="">ทุกสาขา</option>';
+  $('pills').innerHTML=''; $('branchRow').innerHTML=''; $('bankRow').innerHTML='';
   var d0 = DateRange.thisMonth();
   $('from').value=d0.from; $('to').value=d0.to; if (RANGE) RANGE.set(d0.from, d0.to);
   setNotice(''); $('healthBar').innerHTML=''; $('cards').innerHTML=''; $('latestInfo').textContent=''; $('runs').innerHTML='';
@@ -1358,7 +1378,7 @@ function logout(){
 function enterApp(role){
   S.role = role;   /* แถบผู้ใช้บอก "สิทธิ์" ไม่ใช่ "ตัวตน" — ห้ามโชว์อีเมล (dual-access-login) */
   showScreen('data');
-  selectBank('ALL');
+  loadData();
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
