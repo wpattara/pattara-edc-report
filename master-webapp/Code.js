@@ -69,6 +69,28 @@ function appVersionLabel_() {
   return 'v' + APP_VERSION + (d ? ' · ' + d : '');
 }
 
+/* ====================== ติดตั้งครั้งแรก (เจ้าของรันจาก editor 1 ครั้ง) ====================== */
+
+/**
+ * สคริปต์ใหม่ต้องให้บัญชีที่ deploy (gm@) อนุมัติสิทธิ์ก่อน ไม่งั้นลิงก์ /exec ตอบ 403 "ต้องมีสิทธิ์เข้าถึง" กับทุกคน
+ * เปิด editor → เลือกฟังก์ชัน setup → เรียกใช้ → กดอนุญาต แล้วค่อยเปิดลิงก์แอป
+ * ไม่เขียนอะไรนอกจาก stamp เวอร์ชัน/salt ของ PIN · ถ้าตั้งชีต MASTER แล้วจะลองเปิดให้ดูใน log
+ */
+function setup() {
+  var props = PropertiesService.getScriptProperties();
+  Logger.log('ป้ายเวอร์ชัน: ' + appVersionLabel_());
+  adminSalt_(); adminPinHash_();
+  Logger.log('PIN ผู้ดูแล: ' + (pinIsDefault_() ? 'ยังเป็นค่าเริ่มต้น ' + PIN_DEFAULT + ' — เข้าแอปแล้วเปลี่ยนที่ ตั้งค่าระบบ › เปลี่ยน PIN' : 'ตั้งแล้ว'));
+  var id = props.getProperty(PROP_SS) || '';
+  if (!id) { Logger.log('ยังไม่ได้ตั้งชีต MASTER — เข้าแอปด้วย PIN แล้วไปที่ ตั้งค่าระบบ › การเชื่อมต่อ วางลิงก์ชีต'); }
+  else {
+    var ss = masterSs_();
+    Logger.log('ชีต MASTER: ' + ss.getName() + ' · แท็บธนาคาร ' + bankTabs_(ss).join(', ') + ' · timezone ' + ss.getSpreadsheetTimeZone());
+  }
+  Logger.log('ลิงก์แอป: ' + (appPublicUrl_() || '(ยังไม่ได้ deploy)'));
+  return 'OK';
+}
+
 /* ====================== Web entry ====================== */
 
 /** ลิงก์แอปรูปที่แจกได้ — บัญชีองค์กรจะได้ /a/macros/<โดเมน>/ ซึ่งบังคับล็อกอินโดเมนนั้น

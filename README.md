@@ -4,6 +4,10 @@
 
 > ⚠️ **Private repo** — โค้ดมี `SYNC_TOKEN`, MERCHANT_ID และรหัสสาขาจริง **ห้ามเปลี่ยนเป็น public**
 
+> ## 🆕 20/10/2569 — แอปใหม่ `master-webapp/` (v2.0.0) ย้ายแหล่งข้อมูลไปชีต ETAX EDC — MASTER
+> สคริปต์ใหม่ `1D2MJfl1wDtAmrxUsUJkKJ9rTfqfe9s5-7GCKtRndUx_R1iSs9H9u0HY2` (gm@) อ่านชีต MASTER ใบเดียว ไม่มี Sync endpoint ไม่มีเรื่องบัญชีหลายคนอีก
+> **บริบท/สถานะ/งานค้างทั้งหมดอยู่ใน [`docs/HANDOFF.md`](docs/HANDOFF.md)** — เนื้อหาด้านล่างนี้คือระบบเก่า (`webapp/` + `sheet-*`) ที่ยังเดินอยู่ ไม่ได้แตะ
+
 ## โครงสร้าง
 
 | โฟลเดอร์ | คืออะไร | Script ID | เจ้าของ |
