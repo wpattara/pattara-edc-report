@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<base target="_blank">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F4EF; --card:#FFFFFF; --ink:#20313B; --mut:#64758A;
+  --line:#E4E0D6; --teal:#0E6E5C; --tealsoft:#E4F1ED; --red:#B3261E;
+  --brass:#A9843F; --gold:#D9B44A;
+  --green:#0E6E5C; --green-dark:#0B5648; --muted:#64758A;
+  --sbbg:#0F3D36; --sbtext:#DCE9E5; --sbmut:#8FB0A8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Sarabun','Noto Sans Thai',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font-family:inherit}
+#app{display:flex;min-height:100vh}
+
+/* ---------- sidebar (มาตรฐานกลุ่ม: พื้นเข้ม · ย่อได้ · เมนูผู้ใช้ก้นแถบ) ---------- */
+aside{position:sticky;top:0;align-self:flex-start;width:236px;flex:0 0 236px;
+  background:var(--sbbg);color:var(--sbtext);
+  display:flex;flex-direction:column;height:100vh;transition:width .15s,flex-basis .15s}
+@media (max-width:1366px){aside{width:212px;flex-basis:212px}}
+aside.mini{width:56px;flex-basis:56px}
+.sb-toggle{position:absolute;top:17px;right:-13px;z-index:6;width:26px;height:26px;border-radius:50%;
+  background:#E4E8E7;border:1px solid #B9C4C1;color:#12211E;padding:0 0 0 1px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.3);transition:.15s}
+.sb-toggle .ico-chev{width:13px;height:13px;transition:transform .15s}
+aside.mini .sb-toggle .ico-chev{transform:rotate(180deg)}
+.sb-toggle:hover{background:#fff;color:#000;border-color:var(--brass)}
+.brand{display:flex;align-items:center;gap:10px;padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.10)}
+.sb-tile{width:32px;height:32px;border-radius:8px;background:var(--gold);color:#3B2A00;flex:none;overflow:hidden;
+  outline:1px solid var(--line);outline-offset:-1px;display:flex;align-items:center;justify-content:center}
+.sb-tile svg{width:100%;height:100%;display:block}
+.sb-meta{min-width:0;flex:1}
+.sb-name{font-size:13.5px;font-weight:600;color:#fff;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.sb-ver{font-size:10.5px;color:var(--sbmut);margin-top:2px;white-space:nowrap}
+nav{padding:10px 8px;flex:1;overflow-y:auto}
+.navlab{font-size:11px;color:#7FA096;letter-spacing:.6px;margin:10px 8px 4px}
+.navitem{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:0;background:none;
+  cursor:pointer;font:inherit;font-weight:500;color:var(--sbtext);padding:10px 11px;border-radius:8px;
+  margin:2px 0;border-left:3px solid transparent}
+.navitem:hover{background:rgba(255,255,255,.07)}
+.navitem.on{background:rgba(255,255,255,.13);color:#fff;border-left-color:var(--gold);font-weight:600}
+.navitem .ico{opacity:.85}
+.navitem .nlabel{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lockro{width:14px;height:14px;flex:none;opacity:.95;color:var(--brass)}
+.ro-note{font-size:10.5px;color:var(--sbmut);line-height:1.45;margin:10px 10px 0;padding-left:8px;border-left:2px solid var(--brass)}
+.sb-account{position:relative;margin-top:auto;border-top:1px solid rgba(255,255,255,.10);padding:10px}
+.sb-userbtn{display:flex;align-items:center;gap:8px;width:100%;background:none;border:0;cursor:pointer;
+  color:var(--sbtext);font:inherit;font-size:12.5px;padding:6px 7px;border-radius:8px;text-align:left}
+.sb-userbtn:hover{background:rgba(255,255,255,.07)}
+.sb-avatar{width:26px;height:26px;border-radius:50%;background:var(--brass);color:#fff;flex:none;display:flex;align-items:center;justify-content:center}
+.sb-avatar svg{width:15px;height:15px}
+.sb-uname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-car{width:14px;height:14px;flex:none;opacity:.8;transform:rotate(180deg);transition:transform .15s}
+.sb-account.open .sb-car{transform:rotate(0)}
+.sb-umenu{display:none;position:absolute;left:10px;bottom:calc(100% - 4px);z-index:20;min-width:190px;
+  background:#fff;border:1px solid var(--line);border-radius:10px;padding:5px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.sb-account.open .sb-umenu{display:block}
+.sb-umenu a,.sb-umenu button{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;
+  cursor:pointer;font:inherit;font-size:13px;color:var(--ink);padding:9px 10px;border-radius:7px;
+  text-decoration:none;text-align:left;white-space:nowrap}
+.sb-umenu a:hover,.sb-umenu button:hover{background:#F1F3F2}
+.sb-umenu .ico{opacity:.75}
+.sb-umenu .udanger{color:#B4372F}
+.usep{border-top:1px solid var(--line);margin:4px 2px}
+aside.mini .sb-meta,aside.mini .navlab,aside.mini .ro-note,
+aside.mini .navitem .nlabel,aside.mini .navitem .lockro,
+aside.mini .sb-uname,aside.mini .sb-car{display:none}
+aside.mini .brand{justify-content:center;padding:14px 0}
+aside.mini .navitem{justify-content:center;padding:10px 0}
+aside.mini .sb-userbtn{justify-content:center}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0;padding:18px 22px 30px}
+.pills{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.pill{font:inherit;cursor:pointer;border:1.5px solid var(--line);background:var(--card)}
+.pill.ic{width:92px;height:92px;padding:0;border-radius:22px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.pill.ic.on{border-width:3px}
+.pfall{width:40px;height:40px;border-radius:10px;color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:17px}
+.plabel{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1;max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.psub{font-size:9px;font-weight:500;color:var(--mut);line-height:1.2;max-width:86px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.tabsbar{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:1px solid var(--line);margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.tabs{display:flex;gap:18px}
+.tab{font:inherit;font-size:14px;border:0;background:none;cursor:pointer;color:var(--mut);padding:8px 2px;border-bottom:2.5px solid transparent;font-weight:500}
+.tab.on{color:var(--ink);font-weight:600;border-bottom-color:var(--teal)}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:6px}
+.seg button{font:inherit;font-size:12.5px;border:0;background:var(--card);color:var(--mut);padding:6px 12px;cursor:pointer}
+.seg button.on{background:var(--teal);color:#fff;font-weight:600}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.toolbar input[type=text],.toolbar select{font:inherit;font-size:13px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink)}
+.toolbar input[type=text]{width:180px}
+.toolbar select{max-width:220px}
+.btn{font:inherit;font-size:13px;font-weight:600;cursor:pointer;border-radius:8px;padding:7px 14px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.btn.pri{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.danger{color:var(--red);border-color:#E7C2BF}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.grow{flex:1}
+.mini{font:inherit;font-size:12px;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 10px}
+.mini.danger{color:var(--red);border-color:#E7C2BF;background:#FBEDEB}
+.ico{width:15px;height:15px;flex:none}
+.btn.withico,.mini.withico{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.btn.withico .ico{opacity:.8}
+.btn.pri.withico .ico{opacity:1}
+.inforow{display:flex;align-items:center;gap:14px;margin:0 0 12px;flex-wrap:wrap;font-size:12px;color:var(--mut)}
+.inforow label{display:inline-flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap}
+.inforow .runs{display:inline-flex;gap:8px;flex-wrap:wrap}
+.runchip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:#fff;white-space:nowrap}
+.runchip .dot{width:7px;height:7px;border-radius:50%;background:var(--teal)}
+.runchip.bad .dot{background:var(--red)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.cardm{background:var(--card);border:1px solid var(--line);border-top:3px solid var(--teal);border-radius:10px;padding:10px 14px}
+.cardm .l{font-size:11.5px;color:var(--mut)}
+.cardm .v{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+
+.tablewrap{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:62vh}
+table.data{border-collapse:collapse;width:100%;font-size:13px}
+table.data thead th{position:sticky;top:0;background:#FBFAF6;border-bottom:1.5px solid var(--line);
+  text-align:left;padding:9px 10px;font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;z-index:1}
+table.data thead th.nosort{cursor:default}
+table.data tbody td{border-bottom:1px solid #F0EDE4;padding:7px 10px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.data tbody tr:hover{background:#FAF8F2}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.miss{background:#FFF3CD;color:#7A5D00;font-weight:600}
+table.data tfoot td{padding:9px 10px;font-weight:700;background:#F4F7F5;border-top:2px solid var(--teal);position:sticky;bottom:0;font-variant-numeric:tabular-nums}
+.pager{display:flex;gap:10px;align-items:center;margin-top:10px;color:var(--mut);font-size:12.5px;flex-wrap:wrap}
+.pager button{font:inherit;border:1px solid var(--line);background:var(--card);border-radius:6px;padding:4px 10px;cursor:pointer}
+.notice{background:#FFF3CD;border:1px solid #E6C34A;border-radius:10px;padding:14px 16px;margin-bottom:12px;color:#7A5D00;line-height:1.6}
+.notice .ico{width:16px;height:16px;flex:none;vertical-align:-3px;margin-right:6px}
+.notice.err{background:#FDEDEC;border-color:#F1B8B4;color:var(--red)}
+.empty{padding:40px;text-align:center;color:var(--mut)}
+
+/* ---------- login ---------- */
+#dataScreen{display:none}
+#loginScreen{display:flex;align-items:center;justify-content:center;min-height:72vh}
+.logincard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px 34px;width:340px;text-align:center}
+.app-tile{width:72px;height:72px;border-radius:16px;background:var(--paper);padding:0;margin:0 auto;overflow:hidden;
+  outline:1px solid var(--line);outline-offset:-1px;display:flex;align-items:center;justify-content:center;color:var(--brass)}
+.app-tile svg{width:100%;height:100%;display:block}
+.pininp{font-size:22px;letter-spacing:10px;text-align:center;width:190px;padding:10px 6px;border:1px solid var(--line);border-radius:10px}
+.pinrow{display:flex;gap:8px;justify-content:center;align-items:stretch}
+.btn-unlock{width:50px;flex:none;display:inline-flex;align-items:center;justify-content:center;background:#F1F3F2;color:#3C4A47;border:1px solid #DDE3E1;border-radius:10px;cursor:pointer;padding:0}
+.btn-unlock:hover{background:#E7EBEA}
+.btn-unlock svg{width:22px;height:22px}
+.pinerr{color:var(--red);font-size:12.5px;font-weight:600;margin-top:10px;min-height:17px}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.shake{animation:shake .5s}
+.ordiv{display:flex;align-items:center;gap:12px;color:#3C4A47;font-size:14px;font-weight:600;margin:36px 0 16px}
+.ordiv::before,.ordiv::after{content:'';flex:1;border-top:1px solid var(--line)}
+.ordiv span{display:inline-flex;align-items:center;gap:8px}
+.ordiv svg{width:20px;height:20px;flex:none}
+.loginshare{margin-top:22px;border-top:1px dashed var(--line);padding-top:12px}
+.lnkbtn{background:none;border:0;cursor:pointer;font:inherit;font-size:12.5px;color:var(--teal);display:inline-flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px}
+.lnkbtn:hover{background:var(--tealsoft)}
+
+/* ---------- settings ---------- */
+#settingsScreen{display:none}
+.setcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.settings-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.mtabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:14px;flex-wrap:wrap}
+.mtabs button{border:0;background:transparent;padding:8px 13px;font-size:13px;color:var(--mut);border-bottom:2px solid transparent;cursor:pointer}
+.mtabs button.active{color:var(--teal);font-weight:700;border-bottom-color:var(--teal)}
+.mtabs button.dirty::after{content:'•';color:var(--red);margin-left:5px;font-weight:700}
+.hidden{display:none!important}
+.tokchip{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--tealsoft);color:var(--teal);font-family:ui-monospace,monospace}
+.tokchip.none{background:#FDECEA;color:var(--red);font-family:inherit}
+.savebar{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);flex-wrap:wrap}
+.testout{font-size:12.5px;line-height:1.5;margin-top:8px}
+.testout.ok{color:var(--teal)} .testout.bad{color:var(--red)}
+.rdonly{font-family:ui-monospace,monospace;font-size:13px;color:var(--mut)}
+.icoprev{width:96px;height:96px;border-radius:18px;background:var(--paper);border:0;outline:1px solid var(--line);outline-offset:-1px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none;color:var(--brass)}
+.icoprev img{width:100%;height:100%;object-fit:cover;display:block}
+.icoprev svg{width:58px;height:58px}
+.icobox{display:flex;gap:14px;align-items:flex-start;margin:6px 0 10px}
+.sb-tile img,.app-tile img{width:100%;height:100%;object-fit:cover;display:block}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.sec h3{margin:0 0 10px;font-size:15px;display:flex;align-items:center;gap:6px}
+.sec .hint{font-size:12px;color:var(--mut);margin:-6px 0 10px;line-height:1.5}
+.sin{font:inherit;font-size:13px;padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
+.frow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.frow label{font-size:12.5px;color:var(--mut);min-width:96px}
+.wide{flex:1;min-width:220px}
+
+/* ---------- กล่อง QR ทางเข้าแอป (มาตรฐานกลุ่ม ข้อ 9) ---------- */
+#shareBox{position:fixed;inset:0;background:rgba(32,49,59,.45);display:none;align-items:center;justify-content:center;z-index:70}
+#shareBox.open{display:flex}
+.sharecard{position:relative;background:#fff;border-radius:16px;padding:22px 24px 18px;width:340px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.sharecard h3{margin:0 0 14px;font-size:15px}
+.shareclose{position:absolute;top:10px;right:10px;width:30px;height:30px;border:0;background:none;cursor:pointer;color:var(--mut);font-size:20px;line-height:1;border-radius:8px}
+.shareclose:hover{background:#F1F3F2;color:var(--ink)}
+.sharetile{width:56px;height:56px;border-radius:14px;background:var(--paper);outline:1px solid var(--line);outline-offset:-1px;margin:0 auto 6px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--brass)}
+.sharetile img,.sharetile svg{width:100%;height:100%;display:block;object-fit:cover}
+.sharename{font-weight:600;font-size:14px;margin-bottom:10px}
+#qrHost{display:flex;justify-content:center;min-height:200px;align-items:center}
+#qrHost img,#qrHost canvas{display:block}
+.sharebtns{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.sharenote{font-size:11.5px;color:var(--mut);margin-top:10px;line-height:1.5}
+
+#overlay{position:fixed;inset:0;background:rgba(246,244,239,.75);display:none;align-items:center;justify-content:center;z-index:50;font-weight:600;color:var(--teal)}
+#overlay .box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 26px;display:flex;gap:12px;align-items:center}
+.spin{width:18px;height:18px;border:3px solid var(--tealsoft);border-top-color:var(--teal);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--red);color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:80;max-width:80vw}
+#toast.ok{background:var(--teal)}
+
+/* ═══ DatePicker — ปฏิทินเดียว จิ้มวันเดียว/ช่วงวัน (สกิล date-picker) ═══ */
+.dr-wrap{position:relative;display:inline-block}
+.dr-btn{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;background:#fff;border:1.4px solid var(--line);border-radius:10px;padding:8px 12px;font-family:inherit;font-size:13.5px;color:var(--ink);cursor:pointer}
+.dr-btn:hover{border-color:var(--green)}
+.dr-btn.empty{color:var(--muted)}
+.dr-btn .dr-ico{width:16px;height:16px;flex:none;color:var(--green)}
+.dr-pop{display:none;position:fixed;top:0;left:0;z-index:200;width:300px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:0 10px 28px rgba(16,44,38,.16)}
+.dr-pop.open{display:block}
+.dr-quick{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.dr-quick button{border:1px solid var(--line);background:#fff;border-radius:14px;padding:3px 10px;font-family:inherit;font-size:12px;color:var(--muted);cursor:pointer}
+.dr-quick button:hover{border-color:var(--green);color:var(--green)}
+.dr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dr-head b{font-size:14px}
+.dr-nav{border:none;background:none;cursor:pointer;color:var(--muted);font-size:17px;line-height:1;padding:3px 9px;border-radius:6px}
+.dr-nav:hover{background:#F1F5F4;color:var(--ink)}
+.dr-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.dr-dow{text-align:center;font-size:11px;color:var(--muted);padding:4px 0}
+.dr-day{text-align:center;font-size:13px;padding:6px 0;border-radius:7px;cursor:pointer;border:1px solid transparent;user-select:none}
+.dr-day:hover{background:#EDF4F2}
+.dr-day.out{color:#C4CDCA}
+.dr-day.dis{color:#D3D9D6;cursor:not-allowed}
+.dr-day.dis:hover{background:transparent}
+.dr-day.today{border-color:var(--green);font-weight:600}
+.dr-day.in{background:#E4F0EC;border-radius:0}
+.dr-day.edge{background:var(--green);color:#fff;font-weight:600}
+.dr-day.edge.start{border-radius:7px 0 0 7px}
+.dr-day.edge.end{border-radius:0 7px 7px 0}
+.dr-day.edge.only{border-radius:7px}
+.dr-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px}
+.dr-sum{flex:1;min-width:0;font-size:12px;color:var(--muted);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dr-clear{flex:none;border:none;background:none;padding:0;font-family:inherit;font-size:12px;color:var(--muted);text-decoration:underline;cursor:pointer}
+.dr-clear:hover{color:var(--green)}
+.dr-apply{background:var(--green);color:#fff;border:none;border-radius:8px;padding:7px 14px;font-family:inherit;font-size:13px;cursor:pointer;flex:none}
+.dr-apply:hover{background:var(--green-dark)}
+
+/* ---------- print ---------- */
+#printArea{display:none}
+@media print{
+  body>#app,#overlay,#toast,#shareBox{display:none!important}
+  body{background:#fff}
+  #printArea{display:block;font-size:11px;font-family:'Sarabun',sans-serif}
+  #printArea h2{margin:0 0 2px;font-size:16px}
+  #printArea .pm{color:#444;margin-bottom:10px;font-size:11px}
+  #printArea table{border-collapse:collapse;width:100%}
+  #printArea th,#printArea td{border:1px solid #999;padding:3px 5px;text-align:left}
+  #printArea td.num,#printArea th.num{text-align:right}
+  #printArea tfoot td{font-weight:bold;background:#eee}
+}
+</style>
+</head>
+<body>
+<!-- ชุดไอคอนเส้นกลาง — ชุดเดียวกับแอปอื่นของกลุ่ม (pattara-emoji) · เรียกใช้ด้วย <svg class="ico"><use href="#i-xxx"/></svg> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+<symbol id="i-log-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+<symbol id="i-book-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+<symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14h1M14 20h1M17 20h4M20 17h1"/></symbol>
+<symbol id="i-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></symbol>
+<symbol id="i-wrench" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+<symbol id="i-alert-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+<symbol id="i-octagon-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.86 2h8.28L22 7.86v8.28L16.14 22H7.86L2 16.14V7.86z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+<symbol id="i-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></symbol>
+<symbol id="i-credit-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></symbol>
+</defs></svg>
+<div id="app">
+  <aside id="sidebar" style="display:none">
+    <button class="sb-toggle" id="sbToggle" aria-label="ย่อ/ขยายแถบเมนู">
+      <svg class="ico-chev" aria-hidden="true"><use href="#i-chevron-left"/></svg>
+    </button>
+    <div class="brand">
+      <div class="sb-tile" id="sbTile"><svg aria-hidden="true"><use href="#i-credit-card"/></svg></div>
+      <div class="sb-meta">
+        <div class="sb-name" id="appName">ระบบขึ้นเงินบัตรเครดิต EDC</div>
+        <div class="sb-ver" id="appVer"></div>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="sb-account" id="sbAccount" style="display:none">
+      <button class="sb-userbtn" id="sbUserBtn" aria-haspopup="true" aria-expanded="false">
+        <span class="sb-avatar"><svg aria-hidden="true"><use href="#i-user"/></svg></span>
+        <span class="sb-uname" id="roleBadge">ผู้ใช้งานทั่วไป</span>
+        <svg class="sb-car" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+      </button>
+      <div class="sb-umenu" id="sbUmenu" role="menu">
+        <a id="lnkManual" target="_blank" rel="noopener noreferrer" style="display:none">
+          <svg class="ico" aria-hidden="true"><use href="#i-book-open"/></svg>คู่มือการใช้งาน</a>
+        <button id="mnuShare"><svg class="ico" aria-hidden="true"><use href="#i-qr"/></svg>แชร์ QR code</button>
+        <button id="mnuSet" style="display:none">
+          <svg class="ico" aria-hidden="true"><use href="#i-settings"/></svg>ตั้งค่าระบบ</button>
+        <div class="usep"></div>
+        <button class="udanger" id="btnLogout">
+          <svg class="ico" aria-hidden="true"><use href="#i-log-out"/></svg>ออกจากระบบ</button>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+    <div id="loginScreen">
+      <div class="logincard" id="loginCard">
+        <div class="app-tile" id="loginTile"><svg aria-hidden="true"><use href="#i-lock"/></svg></div>
+        <h2 style="margin:14px 0 0;font-size:18px" id="loginTitle">ระบบขึ้นเงินบัตรเครดิต EDC</h2>
+        <button class="btn pri" id="btnEnterUser" style="width:100%;padding:11px;font-size:14.5px;margin-top:24px">ผู้ใช้งานทั่วไป</button>
+        <div class="ordiv"><span><svg aria-hidden="true"><use href="#i-wrench"/></svg>ผู้ดูแลระบบ</span></div>
+        <div class="pinrow">
+          <input type="password" id="pin" class="pininp" inputmode="numeric" maxlength="6" placeholder="••••••" aria-label="PIN ผู้ดูแล 6 หลัก">
+          <button class="btn-unlock" id="btnEnterAdmin" title="เข้าสู่ระบบด้วย PIN" aria-label="เข้าสู่ระบบด้วย PIN">
+            <svg aria-hidden="true"><use href="#i-unlock"/></svg></button>
+        </div>
+        <div class="pinerr" id="pinErr"></div>
+        <div class="loginshare"><button class="lnkbtn" id="btnLoginShare"><svg class="ico" aria-hidden="true"><use href="#i-qr"/></svg>แชร์ QR code เข้าใช้งาน</button></div>
+      </div>
+    </div>
+
+    <div id="dataScreen">
+      <div class="pills" id="pills"></div>
+      <div class="tabsbar">
+        <div class="tabs"><button class="tab on" id="tabMain">รายการขึ้นเงิน</button></div>
+        <div class="seg" id="seg">
+          <button id="segRows" class="on">รายการ</button>
+          <button id="segDaily">สรุปรายวัน</button>
+          <button id="segBranch">สรุปรายสาขา</button>
+          <button id="segUnit">สรุปรายหน่วยงาน</button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input type="text" id="q" placeholder="ค้นหาทุกฟิลด์…">
+        <select id="unit"><option value="">ทุกหน่วยงาน</option></select>
+        <select id="store"><option value="">ทุกสาขา</option></select>
+        <button type="button" id="rangeBtn"></button>
+        <input type="hidden" id="from"><input type="hidden" id="to">
+        <button class="btn pri" id="btnLoad">ดึงข้อมูล</button>
+        <span class="grow"></span>
+        <button class="btn" id="btnCsv">CSV</button>
+        <button class="btn" id="btnXlsx">Excel</button>
+        <button class="btn" id="btnPrint">PDF</button>
+      </div>
+      <div class="inforow" id="inforow">
+        <span id="latestInfo"></span>
+        <span class="runs" id="runs"></span>
+        <span class="grow"></span>
+        <label><input type="checkbox" id="chkTech">แสดงคอลัมน์เทคนิค</label>
+      </div>
+      <div id="healthBar"></div>
+      <div id="notice"></div>
+      <div class="cards" id="cards"></div>
+      <div class="tablewrap"><table class="data" id="tbl"></table></div>
+      <div class="pager" id="pager"></div>
+    </div>
+
+    <div id="settingsScreen"></div>
+  </main>
+</div>
+
+<div id="shareBox" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="sharecard">
+    <button class="shareclose" id="shareClose" aria-label="ปิด">×</button>
+    <h3 id="shareTitle">สแกน QR code เพื่อเข้าใช้งาน</h3>
+    <div class="sharetile" id="shareTile"><svg aria-hidden="true"><use href="#i-credit-card"/></svg></div>
+    <div class="sharename" id="shareName"></div>
+    <div id="qrHost"></div>
+    <div class="sharebtns">
+      <button class="btn pri withico" id="qrDownload"><svg class="ico" aria-hidden="true"><use href="#i-download"/></svg><span>ดาวน์โหลดรูป</span></button>
+      <button class="btn withico" id="qrCopy"><svg class="ico" aria-hidden="true"><use href="#i-copy"/></svg><span>คัดลอกลิงก์</span></button>
+    </div>
+    <div class="sharenote">รูปที่ดาวน์โหลดมีไอคอน ชื่อแอป และ QR ครบ ส่งเข้าไลน์กลุ่มได้</div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+<div id="overlay"><div class="box"><div class="spin"></div><span id="ovtext">กำลังดึงข้อมูล…</span></div></div>
+<div id="toast"></div>
+
+<script>var BOOTSTRAP = <?!= bootstrap ?>;</script>
+<script>
+var S = {
+  screen:'login', role:null, pin:'', bank:'ALL', view:'rows',
+  headers:[], keys:[], rows:[], truncated:false, latest:null, ms:0, runs:[],
+  sortIdx:-1, sortDir:-1, page:1, per:100, tech:false
+};
+var HEALTH = null;          // {rows, merchants:[{bank,id,name,unit,count}]}
+var $ = function(id){ return document.getElementById(id); };
+
+/* สี/ชื่อย่อของชิปธนาคาร — เป็นเรื่องหน้าตาเท่านั้น รายชื่อธนาคารจริงมาจากแท็บในชีต (ไม่รู้จัก = ใช้ชื่อแท็บ สีกลาง) */
+var BANK_STYLE = {
+  ALL:      { label:'ทุกธนาคาร', sub:'รวมทุกแท็บ',      color:'#0E6E5C', init:'∑' },
+  KBANK:    { label:'K-Bank',    sub:'กสิกรไทย',         color:'#018A4B' },
+  BBL:      { label:'BBL',       sub:'กรุงเทพ',          color:'#1E4B9E' },
+  KTB:      { label:'KTB',       sub:'กรุงไทย',          color:'#00A6E2' },
+  TTB:      { label:'ttb',       sub:'ทหารไทยธนชาต',     color:'#F58220' },
+  KRUNGSRI: { label:'Krungsri',  sub:'กรุงศรีอยุธยา',    color:'#C99700' }
+};
+function bankStyle(k){ return BANK_STYLE[k] || { label:k, sub:'', color:'#64758A' }; }
+function bankLabel(k){ return k==='ALL' ? 'ทุกธนาคาร' : bankStyle(k).label; }
+
+/* ---------- helpers ---------- */
+function esc(s){
+  return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+}
+function fmt(v, type){
+  if (typeof v === 'number'){
+    if (type === 'money') return fmtMoney(v);
+    var isInt = Math.abs(v - Math.round(v)) < 1e-9;
+    return v.toLocaleString('en-US',{minimumFractionDigits:isInt?0:2, maximumFractionDigits:2});
+  }
+  return esc(String(v));
+}
+function fmtMoney(v){ return Number(v||0).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2}); }
+function dateKey(s){
+  var m = new RegExp('^(\\d{2})/(\\d{2})/(\\d{4})').exec(String(s));   // ไม่ใช้ regex literal ที่มี / (errorLog E1)
+  return m ? (+m[3])*10000 + (+m[2])*100 + (+m[1]) : null;
+}
+function pad(n){ return (n<10?'0':'')+n; }
+function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function colIdx(k){ return S.keys.indexOf(k); }
+function colType(i){ var c = BOOTSTRAP.cols[i]; return c ? c.type : 'text'; }
+function colTech(i){ var c = BOOTSTRAP.cols[i]; return !!(c && c.tech); }
+function overlay(on,txt){ $('ovtext').textContent = txt||'กำลังดึงข้อมูล…'; $('overlay').style.display = on?'flex':'none'; }
+function toast(msg, ok){
+  var t=$('toast'); t.textContent=msg; t.className = ok?'ok':''; t.style.display='block';
+  clearTimeout(t._h); t._h=setTimeout(function(){t.style.display='none';},6000);
+}
+function setNotice(html,err){ $('notice').innerHTML = html ? '<div class="notice'+(err?' err':'')+'">'+html+'</div>' : ''; }
+function ICO(name){ return '<svg class="ico" aria-hidden="true"><use href="#i-'+name+'"/></svg>'; }
+
+/* ═══════════════════════════════════════════════════════════════
+ * DateRange — ตัวเลือกวัน/ช่วงวัน ปฏิทินเดือนเดียว (สกิล date-picker · ต้นแบบจากระบบเดลิเวอรี่)
+ *   แสดง พ.ศ. (opts.year='ce' = ค.ศ.) · ส่งค่า ค.ศ. yyyy-MM-dd เสมอ
+ *   แอปนี้ใช้ year:'ce' — ทั้งแอปแสดงวันที่ ค.ศ. dd/MM/yyyy ให้ตรงกับชีต MASTER (ห้ามปน พ.ศ.)
+ * บทเรียนที่ห้ามถอย (เดลิเวอรี่ 03/09/2569):
+ *   1) คลิกในป๊อปอัปต้อง stopPropagation ไม่งั้นตัวเช็ค "คลิกนอกกรอบ" ปิดปฏิทินทุกครั้งที่จิ้ม
+ *   2) hover/จิ้มวัน ให้ paintDays() ทาสีเฉย ๆ ห้าม render() ใหม่ทั้งกริด
+ * ═══════════════════════════════════════════════════════════════ */
+var DateRange = (function () {
+  var MONTH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+  var MON_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var DOW = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  var ICON = '<svg class="dr-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>';
+
+  function pad(n){ return (n<10?'0':'')+n; }
+  function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+  function parse(s){ var m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(Number(m[1]),Number(m[2])-1,Number(m[3])) : null; }
+  function todayYmd(){ return ymd(new Date()); }
+  function shift(days){ var d=new Date(); d.setDate(d.getDate()+days); return ymd(d); }
+  function yearOf(d, ce){ return d.getFullYear() + (ce ? 0 : 543); }
+  function fmt(s, ce){
+    var d=parse(s); if(!d) return '';
+    return ce ? pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear() : d.getDate()+' '+MON_SHORT[d.getMonth()]+' '+yearOf(d, ce);
+  }
+  function label(from, to, ce, placeholder){
+    if(!from && !to) return placeholder || 'ทุกช่วงเวลา';
+    if(from && to && from===to) return fmt(from, ce);
+    if(from && !to) return 'ตั้งแต่ '+fmt(from, ce);
+    if(!from && to) return 'ถึง '+fmt(to, ce);
+    var a=parse(from), b=parse(to);
+    if(!ce && a && b && a.getMonth()===b.getMonth() && a.getFullYear()===b.getFullYear()) return a.getDate()+' – '+fmt(to, ce);
+    return fmt(from, ce)+' – '+fmt(to, ce);
+  }
+  function lastDays(n){ var end=new Date(), start=new Date(); start.setDate(start.getDate()-(Number(n||7)-1)); return {from:ymd(start), to:ymd(end)}; }
+  function thisMonth(){ var n=new Date(); return {from:ymd(new Date(n.getFullYear(), n.getMonth(), 1)), to:todayYmd()}; }
+
+  function attach(btn, opts){
+    opts = opts || {};
+    var mode = opts.mode || 'filter', ce = opts.year === 'ce';
+    var def = mode === 'pick' ? {from:'', to:''} : lastDays(7);
+    var state = { from: opts.from!==undefined ? opts.from : def.from, to: opts.to!==undefined ? opts.to : def.to };
+    var draft = { from:state.from, to:state.to, picking:false, hover:'' };
+    var view = parse(state.from) || new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
+    var min = opts.min || '', max = opts.max || '';
+    var quick = opts.quick || (mode === 'pick' ? [] : [['วันนี้', 'today'], ['7 วัน', '7d'], ['เดือนนี้', 'month'], ['เดือนก่อน', 'prev'], ['ทั้งหมด', 'all']]);
+
+    var wrap=document.createElement('span'); wrap.className='dr-wrap';
+    btn.parentNode.insertBefore(wrap, btn); wrap.appendChild(btn);
+    var pop=document.createElement('div'); pop.className='dr-pop';
+    wrap.appendChild(pop);
+    pop.addEventListener('click', function(e){ e.stopPropagation(); });
+    btn.classList.add('dr-btn'); btn.type='button';
+    paintButton();
+
+    btn.addEventListener('click', function(e){ e.stopPropagation(); if(pop.classList.contains('open')) close(); else open(); });
+    document.addEventListener('click', function(e){ if(pop.classList.contains('open') && !wrap.contains(e.target)) close(); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && pop.classList.contains('open')) close(); });
+
+    function allowed(s){ return !(min && s<min) && !(max && s>max); }
+    function open(){
+      draft={from:state.from, to:state.to, picking:false, hover:''};
+      var base=parse(state.from) || (min && parse(min) > new Date() ? parse(min) : new Date());
+      view=new Date(base.getFullYear(), base.getMonth(), 1);
+      pop.classList.add('open'); render(); place();
+    }
+    function close(){ pop.classList.remove('open'); }
+    function place(){
+      if(!pop.classList.contains('open')) return;
+      var r=btn.getBoundingClientRect(), ph=pop.offsetHeight||360, pw=pop.offsetWidth||300;
+      var top=r.bottom+6; if(top+ph>window.innerHeight-8) top=Math.max(8, r.top-6-ph);
+      var left=(opts.align==='right') ? r.right-pw : r.left; if(left+pw>window.innerWidth-8) left=Math.max(8, window.innerWidth-8-pw);
+      pop.style.top=top+'px'; pop.style.left=Math.max(8,left)+'px';
+    }
+    window.addEventListener('scroll', place, true);
+    window.addEventListener('resize', place);
+    function paintButton(){
+      var empty=!state.from && !state.to;
+      btn.classList.toggle('empty', !!(empty && opts.placeholder));
+      btn.innerHTML = ICON+'<span>'+label(state.from, state.to, ce, opts.placeholder)+'</span>';
+    }
+    function apply(from, to){ state.from=from; state.to=to; paintButton(); close(); if(opts.onApply) opts.onApply({from:state.from, to:state.to}); }
+    function runQuick(v){
+      var now=new Date(), a, b;
+      if(typeof v==='number'){ a=b=shift(v); }
+      else if(v==='today'){ a=b=todayYmd(); }
+      else if(v==='7d'){ var r=lastDays(7); a=r.from; b=r.to; }
+      else if(v==='month'){ a=ymd(new Date(now.getFullYear(), now.getMonth(), 1)); b=ymd(new Date(now.getFullYear(), now.getMonth()+1, 0)); }
+      else if(v==='prev'){ a=ymd(new Date(now.getFullYear(), now.getMonth()-1, 1)); b=ymd(new Date(now.getFullYear(), now.getMonth(), 0)); }
+      else { a=''; b=''; }
+      if(a && !allowed(a)) return;
+      apply(a, b);
+    }
+    function pick(s){
+      if(!allowed(s)) return;
+      if(opts.single){ draft.from=s; draft.to=s; draft.picking=false; apply(s, s); return; }
+      if(!draft.picking){ draft.from=s; draft.to=s; draft.picking=true; draft.hover=s; }
+      else { if(s<draft.from){ draft.to=draft.from; draft.from=s; } else draft.to=s; draft.picking=false; draft.hover=''; }
+      paintDays();
+    }
+    function classesFor(s, lo, hi, today, mo){
+      var cls='dr-day';
+      if(Number(s.slice(5,7))-1!==mo) cls+=' out';
+      if(!allowed(s)) cls+=' dis';
+      if(s===today) cls+=' today';
+      if(lo && hi && s>lo && s<hi) cls+=' in';
+      if(s===lo || s===hi){ cls+=' edge'; if(lo===hi) cls+=' only'; else if(s===lo) cls+=' start'; else cls+=' end'; }
+      return cls;
+    }
+    function range(){
+      var lo=draft.from, hi=draft.to;
+      if(draft.picking && draft.hover){ lo = draft.hover<draft.from ? draft.hover : draft.from; hi = draft.hover<draft.from ? draft.from : draft.hover; }
+      return [lo, hi];
+    }
+    function paintDays(){
+      var r=range(), today=todayYmd(), mo=view.getMonth();
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-d]'), function(c){ c.className=classesFor(c.getAttribute('data-d'), r[0], r[1], today, mo); });
+      var sum=pop.querySelector('.dr-sum');
+      if(sum) sum.textContent = draft.picking ? 'เลือกวันสิ้นสุด… (จิ้มวันเดิม = วันเดียว)' : label(draft.from, draft.to, ce, opts.placeholder);
+    }
+    function render(){
+      var y=view.getFullYear(), mo=view.getMonth(), startIdx=new Date(y, mo, 1).getDay(), today=todayYmd(), r=range();
+      var html='';
+      if(quick.length){
+        html+='<div class="dr-quick">'+quick.map(function(q, i){ return '<button type="button" data-q="'+i+'">'+q[0]+'</button>'; }).join('')+'</div>';
+      }
+      html+='<div class="dr-head"><button type="button" class="dr-nav" data-nav="-1">&#8249;</button><b>'+MONTH[mo]+' '+(ce?y:y+543)+'</b><button type="button" class="dr-nav" data-nav="1">&#8250;</button></div>'
+        +'<div class="dr-grid">'+DOW.map(function(d){ return '<div class="dr-dow">'+d+'</div>'; }).join('');
+      for(var i=0;i<42;i++){
+        var d=new Date(y, mo, 1-startIdx+i), s=ymd(d);
+        html+='<div class="'+classesFor(s, r[0], r[1], today, mo)+'" data-d="'+s+'">'+d.getDate()+'</div>';
+        if(i>=34 && d.getMonth()!==mo && (i+1)%7===0) break;
+      }
+      html+='</div><div class="dr-foot">'
+        +(mode==='pick' ? (opts.clearable ? '<button type="button" class="dr-clear">ล้าง</button>' : '') : '<button type="button" class="dr-clear">ทั้งหมด</button>')
+        +'<span class="dr-sum">'+(draft.picking ? 'เลือกวันสิ้นสุด… (จิ้มวันเดิม = วันเดียว)' : label(draft.from, draft.to, ce, opts.placeholder))+'</span>'
+        +(opts.single ? '' : '<button type="button" class="dr-apply">ใช้ช่วงนี้</button>')+'</div>';
+      pop.innerHTML=html;
+      var clr=pop.querySelector('.dr-clear'); if(clr) clr.addEventListener('click', function(){ apply('', ''); });
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-q]'), function(b){ b.addEventListener('click', function(){ runQuick(quick[Number(b.getAttribute('data-q'))][1]); }); });
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-nav]'), function(b){ b.addEventListener('click', function(){ view=new Date(view.getFullYear(), view.getMonth()+Number(b.getAttribute('data-nav')), 1); render(); }); });
+      Array.prototype.forEach.call(pop.querySelectorAll('[data-d]'), function(c){
+        c.addEventListener('click', function(){ pick(c.getAttribute('data-d')); });
+        c.addEventListener('mouseenter', function(){ var s=c.getAttribute('data-d'); if(draft.picking && draft.hover!==s){ draft.hover=s; paintDays(); } });
+      });
+      var ap=pop.querySelector('.dr-apply'); if(ap) ap.addEventListener('click', function(){ apply(draft.from, draft.to); });
+      place();
+    }
+    return {
+      get: function(){ return {from:state.from, to:state.to}; },
+      set: function(from, to){ state.from=from||''; state.to=to||''; paintButton(); },
+      setMin: function(m){ min=m||''; }
+    };
+  }
+  return { attach:attach, fmt:fmt, label:label, today:todayYmd, lastDays:lastDays, thisMonth:thisMonth };
+})();
+
+/* ---------- ป้ายแอป / แถบซ้าย ---------- */
+function applyBrand(){
+  var name = BOOTSTRAP.appName || 'ระบบขึ้นเงินบัตรเครดิต EDC';
+  $('appName').textContent = name;
+  var t = $('loginTitle'); if (t) t.textContent = name;
+  var ic = BOOTSTRAP.appIcon || '';
+  $('sbTile').innerHTML    = ic ? '<img src="'+esc(ic)+'" alt="">' : '<svg aria-hidden="true"><use href="#i-credit-card"/></svg>';
+  $('loginTile').innerHTML = ic ? '<img src="'+esc(ic)+'" alt="">' : '<svg aria-hidden="true"><use href="#i-lock"/></svg>';
+}
+function fitAppName(){
+  var el = $('appName'); if (!el || !el.offsetParent) return;
+  var box = el.parentNode; if (!box || !box.clientWidth) return;
+  var size = 13.5;
+  el.style.fontSize = size + 'px';
+  while (el.scrollWidth > box.clientWidth && size > 10){ size -= 0.5; el.style.fontSize = size + 'px'; }
+  el.title = el.scrollWidth > box.clientWidth ? el.textContent : '';
+}
+function initSidebar(){
+  var side = $('sidebar'), btn = $('sbToggle');
+  try { if (localStorage.getItem('EDC2_sidebar') === 'mini') side.classList.add('mini'); } catch(e){}
+  btn.addEventListener('click', function(){
+    var mini = side.classList.toggle('mini');   // ลูกศรหมุนเองด้วย CSS ห้ามเขียน textContent ทับ
+    try { localStorage.setItem('EDC2_sidebar', mini ? 'mini' : 'full'); } catch(e){}
+    fitAppName();
+  });
+}
+function initUserMenu(){
+  var wrap = $('sbAccount'), btn = $('sbUserBtn');
+  btn.addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = wrap.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  document.addEventListener('click', function(e){
+    if (!e.target.closest || !e.target.closest('.sb-account')){ wrap.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ wrap.classList.remove('open'); btn.setAttribute('aria-expanded','false'); closeShare(); }
+  });
+  $('mnuSet').onclick = function(){ wrap.classList.remove('open'); openSettings(); };
+  $('mnuShare').onclick = function(){ wrap.classList.remove('open'); openShare(); };
+}
+function renderNav(){
+  $('sbAccount').style.display = S.role ? '' : 'none';
+  $('appVer').textContent = BOOTSTRAP.appVersion || '';
+  $('roleBadge').textContent = S.role==='admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งานทั่วไป';
+  $('sbUserBtn').title = S.role==='admin' ? 'ผู้ดูแลระบบ' : 'ผู้ใช้งานทั่วไป';
+  $('mnuSet').style.display = S.role==='admin' ? '' : 'none';
+  var man = BOOTSTRAP.manualUrl || '';
+  $('lnkManual').style.display = man ? '' : 'none';
+  if (man) $('lnkManual').href = man;
+  if (!S.role){ $('nav').innerHTML=''; fitAppName(); return; }
+  var lock = '<svg class="lockro" aria-hidden="true"><use href="#i-lock"/></svg>';
+  var roData = (S.role!=='admin' && S.screen==='data') ? lock : '';
+  var html = '<div class="navlab">เมนู</div>'+
+    '<button class="navitem'+(S.screen==='data'?' on':'')+'" id="navData">'+ICO('credit-card')+'<span class="nlabel">ขึ้นเงินบัตรเครดิต (EDC)</span>'+roData+'</button>';
+  if (S.role !== 'admin') html += '<div class="ro-note">อ่านอย่างเดียว — ดูและดาวน์โหลดได้ แก้ไขข้อมูลไม่ได้</div>';
+  $('nav').innerHTML = html;
+  $('navData').onclick = function(){ showScreen('data'); };
+}
+
+/* ---------- ชิปธนาคาร ---------- */
+function bankKeys(){ return ['ALL'].concat(BOOTSTRAP.banks || []); }
+function renderPills(){
+  $('pills').innerHTML = bankKeys().map(function(k){
+    var st = bankStyle(k), on = k===S.bank;
+    var style = on ? 'style="border-color:'+esc(st.color)+';background:'+esc(st.color)+'14"' : '';
+    return '<button class="pill ic'+(on?' on':'')+'" '+style+' data-p="'+esc(k)+'" title="'+esc(st.label+(st.sub?' · '+st.sub:''))+'">'+
+      '<span class="pfall" style="background:'+esc(st.color)+'">'+esc(st.init || st.label.charAt(0))+'</span>'+
+      '<span class="plabel">'+esc(st.label)+'</span>'+(st.sub?'<span class="psub">'+esc(st.sub)+'</span>':'')+'</button>';
+  }).join('');
+  Array.prototype.forEach.call($('pills').querySelectorAll('.pill'), function(b){
+    b.onclick = function(){ selectBank(b.getAttribute('data-p')); };
+  });
+}
+function selectBank(k){
+  S.bank = k; renderPills();
+  S.sortIdx=-1; S.page=1;
+  loadData();
+}
+function setView(v){
+  S.view=v;
+  $('segRows').className = v==='rows'?'on':'';
+  $('segDaily').className = v==='daily'?'on':'';
+  $('segBranch').className = v==='branch'?'on':'';
+  $('segUnit').className = v==='unit'?'on':'';
+  renderAll();
+}
+
+/* ---------- server ---------- */
+function notConfiguredNotice(){
+  var h = '<b>'+ICO('octagon-alert')+'ยังไม่ได้ตั้งค่าชีต MASTER</b> — '+
+    (BOOTSTRAP.error ? esc(BOOTSTRAP.error)+' ' : 'แอปยังไม่รู้ว่าจะอ่านข้อมูลจากชีตไหน ');
+  if (S.role==='admin') h += '<button class="mini withico" id="hGoSet">'+ICO('settings')+'<span>ไปที่ ตั้งค่าระบบ › การเชื่อมต่อ</span></button>';
+  else h += 'ให้ผู้ดูแลระบบตั้งค่าที่ ตั้งค่าระบบ › การเชื่อมต่อ';
+  $('healthBar').innerHTML = '<div class="notice err">'+h+'</div>';
+  var g = $('hGoSet'); if (g) g.onclick = openSettings;
+}
+function loadData(){
+  if (!BOOTSTRAP.configured || BOOTSTRAP.error){ notConfiguredNotice(); S.headers=[]; S.rows=[]; renderAll(); return; }
+  overlay(true);
+  var bank = S.bank;
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (S.bank !== bank) return;
+      S.headers = res.headers; S.keys = res.keys; S.rows = res.rows;
+      S.truncated = res.truncated; S.latest = res.latest || null; S.ms = res.ms; S.runs = res.runs || []; S.page = 1;
+      HEALTH = res.health || null;
+      var di = colIdx('date');
+      if (S.sortIdx < 0 && di >= 0){ S.sortIdx = di; S.sortDir = -1; }
+      var msgs = [];
+      if (S.truncated) msgs.push('ข้อมูลเกิน '+BOOTSTRAP.maxRows.toLocaleString()+' แถว แสดงเฉพาะส่วนแรก — แนะนำให้ย่อช่วงวันที่ให้แคบลง');
+      if (!S.rows.length && S.latest && ($('from').value || $('to').value)){
+        msgs.push('ช่วงวันที่ที่เลือกไม่มีข้อมูล — ธนาคารนี้มีข้อมูลล่าสุดถึง <b>'+esc(S.latest.disp)+'</b> '+
+          '<button class="mini" id="jumpLatest" style="margin-left:6px">ไปเดือนล่าสุดที่มีข้อมูล</button>');
+      }
+      setNotice(msgs.join('<br>'));
+      var jb = $('jumpLatest'); if (jb) jb.onclick = function(){ gotoMonthOf(S.latest.iso); };
+      overlay(false);
+      fillFilters(); renderInfo(); renderHealth(); renderAll();
+    })
+    .withFailureHandler(function(e){
+      overlay(false);
+      S.headers=[]; S.rows=[]; renderAll();
+      toast('ดึงข้อมูลไม่สำเร็จ: '+(e && e.message ? e.message : e));
+    })
+    .getData(bank, $('from').value, $('to').value);
+}
+
+/* ตัวกรองหน่วยงาน/สาขา สร้างจากข้อมูลที่โหลดมา (ไม่ต้องยิงเซิร์ฟเวอร์เพิ่ม) */
+function distinct(k){
+  var i = colIdx(k), m = {}, out = [];
+  if (i < 0) return out;
+  S.rows.forEach(function(r){ var v = String(r[i]||'').trim(); if (!m[v]){ m[v]=true; out.push(v); } });
+  return out.sort(function(a,b){ return a.localeCompare(b,'th'); });
+}
+function fillFilters(){
+  var cu = $('unit').value, cs = $('store').value;
+  var units = distinct('unit').filter(Boolean);
+  $('unit').innerHTML = '<option value="">ทุกหน่วยงาน</option>'+units.map(function(u){ return '<option value="'+esc(u)+'">'+esc(u)+'</option>'; }).join('');
+  $('unit').value = units.indexOf(cu)>=0 ? cu : '';
+  var stores = distinct('branch_code');
+  $('store').innerHTML = '<option value="">ทุกสาขา</option>'+stores.map(function(s){
+    return '<option value="'+esc(s||'__blank__')+'">'+(s ? esc(s) : '(ยังไม่มีรหัสสาขา)')+'</option>';
+  }).join('');
+  $('store').value = stores.indexOf(cs==='__blank__'?'':cs)>=0 ? cs : '';
+}
+function renderInfo(){
+  $('latestInfo').textContent = S.latest ? 'ข้อมูลล่าสุดถึง '+S.latest.disp : '';
+  $('runs').innerHTML = (S.runs||[]).map(function(r){
+    var bad = r.status && r.status !== 'OK';
+    return '<span class="runchip'+(bad?' bad':'')+'" title="รอบอ่านใบกำกับล่าสุดของ '+esc(r.bank)+(r.mode?' ('+esc(r.mode)+')':'')+'"><span class="dot"></span>'+
+      esc(bankLabel(r.bank))+' '+esc(r.at)+(r.added!==''?' · +'+esc(r.added):'')+'</span>';
+  }).join('');
+}
+
+/* ---------- รหัสสาขาที่ยังว่าง (เตือน ไม่ล็อก export — เจ้าของเคาะ 20/10/2569 ใช้ข้อมูลเท่าที่มีก่อน) ---------- */
+function renderHealth(){
+  var el = $('healthBar');
+  if (!HEALTH || !HEALTH.rows){ el.innerHTML=''; return; }
+  var ms = HEALTH.merchants || [];
+  var list = ms.slice(0, 8).map(function(m){
+    return '<b>'+esc(bankLabel(m.bank))+' '+esc(m.id)+'</b>'+(m.name?' ('+esc(m.name)+')':'')+(m.unit?' · '+esc(m.unit):'')+' ×'+m.count;
+  }).join(' · ') + (ms.length > 8 ? ' · …อีก '+(ms.length-8)+' ร้าน' : '');
+  var h = '<b>'+ICO('alert-triangle')+'มี '+HEALTH.rows.toLocaleString()+' ใบที่ยังไม่มีรหัสสาขา</b> ('+ms.length+' ร้าน) — '+
+    'ตัวกรอง "สาขา" และสรุปรายสาขาจะรวมใบเหล่านี้ไว้ที่ "(ยังไม่มีรหัสสาขา)"<br>'+
+    'รหัสสาขา/กลุ่ม ใส่ที่แอปตัวโหลดใบกำกับ › ตาราง master › รหัสร้าน แล้วกด "อัปเดตแถวเก่าตาม MAP" '+
+    (BOOTSTRAP.etaxUrl ? '<a class="mini withico" style="text-decoration:none;color:inherit" href="'+esc(BOOTSTRAP.etaxUrl)+'" target="_blank" rel="noopener">'+ICO('external')+'<span>เปิดแอปตัวโหลด</span></a> ' : '')+
+    '<div style="margin-top:6px;font-size:12px">'+list+'</div>';
+  el.innerHTML = '<div class="notice">'+h+'</div>';
+}
+
+/* ---------- กรอง / สรุป (client-side) ---------- */
+function filteredRows(){
+  var ui = colIdx('unit'), si = colIdx('branch_code');
+  var unit = $('unit').value, store = $('store').value;
+  var q = $('q').value.trim().toLowerCase();
+  return S.rows.filter(function(r){
+    if (unit && ui>=0 && String(r[ui])!==unit) return false;
+    if (store && si>=0){
+      var v = String(r[si]||'').trim();
+      if (store==='__blank__' ? v!=='' : v!==store) return false;
+    }
+    if (q){
+      var hit=false;
+      for (var i=0;i<r.length;i++){ if (String(r[i]).toLowerCase().indexOf(q)>=0){ hit=true; break; } }
+      if (!hit) return false;
+    }
+    return true;
+  });
+}
+function visibleIdx(){
+  var out = [];
+  S.headers.forEach(function(h,i){ if (S.tech || !colTech(i)) out.push(i); });
+  return out;
+}
+function sumCols(){
+  return (BOOTSTRAP.sumCols||[]).map(function(k){ return { name: S.headers[colIdx(k)] || k, idx: colIdx(k) }; }).filter(function(c){ return c.idx>=0; });
+}
+function groupSummary(rows, mode){   // 'daily' | 'branch' | 'unit'
+  var gi = mode==='branch' ? colIdx('branch_code') : (mode==='unit' ? colIdx('unit') : colIdx('date'));
+  var sums = sumCols();
+  var map = {}, order = [];
+  rows.forEach(function(r){
+    var g0 = gi>=0 ? String(r[gi]||'').trim() : '';
+    var k = g0 || (mode==='branch' ? '(ยังไม่มีรหัสสาขา)' : '(ว่าง)');
+    if (!map[k]){ map[k] = { k:k, n:0, s:sums.map(function(){return 0;}) }; order.push(k); }
+    var g = map[k]; g.n++;
+    sums.forEach(function(c,i){ var v=r[c.idx]; if (typeof v==='number') g.s[i]+=v; });
+  });
+  var list = order.map(function(k){ return map[k]; });
+  if (mode==='daily') list.sort(function(a,b){ return (dateKey(b.k)||0)-(dateKey(a.k)||0); });
+  else list.sort(function(a,b){ return a.k.localeCompare(b.k,'th'); });
+  return { sums:sums, list:list };
+}
+
+/* ---------- render ---------- */
+function renderAll(){ renderCards(); renderTable(); wireEmptyMsg(); }
+function renderCards(){
+  var rows = filteredRows(), sums = sumCols();
+  var html = '<div class="cardm"><div class="l">จำนวนใบ (ตามตัวกรอง)</div><div class="v">'+rows.length.toLocaleString()+'</div></div>';
+  sums.forEach(function(c){
+    var tot=0; rows.forEach(function(r){ var v=r[c.idx]; if(typeof v==='number') tot+=v; });
+    html += '<div class="cardm"><div class="l">รวม '+esc(c.name)+'</div><div class="v">'+fmtMoney(tot)+'</div></div>';
+  });
+  $('cards').innerHTML = html;
+}
+function isNumCol(i){ var t = colType(i); return t==='money' || t==='num'; }
+function groupLabel(mode){ return mode==='daily' ? 'วันที่' : (mode==='branch' ? 'รหัสสาขา' : 'หน่วยงาน'); }
+function renderTable(){
+  var tbl = $('tbl');
+  if (!S.headers.length){ tbl.innerHTML='<tbody><tr><td class="empty">'+emptyMsg()+'</td></tr></tbody>'; $('pager').innerHTML=''; return; }
+
+  if (S.view!=='rows'){
+    var rows = filteredRows(), ds = groupSummary(rows, S.view);
+    var head = '<thead><tr><th class="nosort">'+groupLabel(S.view)+'</th><th class="nosort num">จำนวนใบ</th>'+
+      ds.sums.map(function(c){return '<th class="nosort num">'+esc(c.name)+'</th>';}).join('')+'</tr></thead>';
+    var body = '<tbody>'+ ds.list.map(function(g){
+      return '<tr><td>'+esc(g.k)+'</td><td class="num">'+g.n.toLocaleString()+'</td>'+g.s.map(function(v){return '<td class="num">'+fmtMoney(v)+'</td>';}).join('')+'</tr>';
+    }).join('') + '</tbody>';
+    var tot = ds.sums.map(function(c,i){ var s=0; ds.list.forEach(function(g){s+=g.s[i];}); return s; });
+    var nAll=0; ds.list.forEach(function(g){nAll+=g.n;});
+    var foot = '<tfoot><tr><td>รวมทั้งหมด</td><td class="num">'+nAll.toLocaleString()+'</td>'+tot.map(function(v){return '<td class="num">'+fmtMoney(v)+'</td>';}).join('')+'</tr></tfoot>';
+    tbl.innerHTML = head+body+foot;
+    $('pager').innerHTML = ds.list.length.toLocaleString()+' กลุ่ม · จาก '+rows.length.toLocaleString()+' ใบ · โหลด '+S.rows.length.toLocaleString()+' แถว ('+(S.ms/1000).toFixed(1)+' วิ)';
+    return;
+  }
+
+  var rows2 = filteredRows();
+  if (S.sortIdx>=0){
+    var i=S.sortIdx, dir=S.sortDir, numeric=isNumCol(i);
+    rows2 = rows2.slice().sort(function(a,b){
+      var x=a[i], y=b[i];
+      if (numeric){ x=(typeof x==='number')?x:-Infinity; y=(typeof y==='number')?y:-Infinity; return (x-y)*dir; }
+      var dx=dateKey(x), dy=dateKey(y);
+      if (dx!=null && dy!=null) return (dx-dy)*dir;
+      return String(x).localeCompare(String(y),'th')*dir;
+    });
+  }
+  var pages = Math.max(1, Math.ceil(rows2.length/S.per));
+  if (S.page>pages) S.page=pages;
+  var start=(S.page-1)*S.per, slice=rows2.slice(start,start+S.per);
+  var vis = visibleIdx(), si = colIdx('branch_code');
+
+  var head = '<thead><tr>'+vis.map(function(i){
+    var arrow = i===S.sortIdx ? (S.sortDir>0?' ↑':' ↓') : '';
+    return '<th class="'+(isNumCol(i)?'num':'')+'" data-i="'+i+'">'+esc(S.headers[i])+arrow+'</th>';
+  }).join('')+'</tr></thead>';
+  var body = '<tbody>'+ slice.map(function(r){
+    return '<tr>'+ vis.map(function(i){
+      var v = r[i], s = fmt(v, colType(i));
+      if (i===si && String(v)==='') return '<td class="miss" title="ยังไม่มีรหัสสาขาใน MERCHANT_MAP">— ยังไม่มีรหัส —</td>';
+      return '<td class="'+(isNumCol(i)?'num':'')+'" title="'+s+'">'+s+'</td>';
+    }).join('')+'</tr>';
+  }).join('') + (slice.length?'':'<tr><td class="empty" colspan="'+vis.length+'">'+emptyMsg()+'</td></tr>') + '</tbody>';
+  tbl.innerHTML = head+body;
+  Array.prototype.forEach.call(tbl.querySelectorAll('thead th'), function(th){
+    th.onclick = function(){
+      var i=+th.getAttribute('data-i');
+      if (S.sortIdx===i) S.sortDir*=-1; else { S.sortIdx=i; S.sortDir=1; }
+      S.page=1; renderTable();
+    };
+  });
+  var pg = $('pager');
+  pg.innerHTML = '<button id="pgPrev">‹ ก่อนหน้า</button><span>หน้า '+S.page+' / '+pages+'</span><button id="pgNext">ถัดไป ›</button>'+
+    '<span>· ตามตัวกรอง '+rows2.length.toLocaleString()+' ใบ · โหลด '+S.rows.length.toLocaleString()+' แถว ('+(S.ms/1000).toFixed(1)+' วิ)</span>';
+  $('pgPrev').onclick=function(){ if(S.page>1){S.page--;renderTable();} };
+  $('pgNext').onclick=function(){ if(S.page<pages){S.page++;renderTable();} };
+}
+
+/* ---------- export ---------- */
+function exportDataset(){
+  if (S.view!=='rows'){
+    var ds = groupSummary(filteredRows(), S.view);
+    var headers = [groupLabel(S.view),'จำนวนใบ'].concat(ds.sums.map(function(c){return c.name;}));
+    var rows = ds.list.map(function(g){ return [g.k, g.n].concat(g.s.map(function(v){return Math.round(v*100)/100;})); });
+    rows.push(['รวมทั้งหมด', ds.list.reduce(function(a,g){return a+g.n;},0)].concat(ds.sums.map(function(c,i){ return Math.round(ds.list.reduce(function(a,g){return a+g.s[i];},0)*100)/100; })));
+    return { headers:headers, rows:rows, types:[] };
+  }
+  var vis = visibleIdx();
+  return { headers: vis.map(function(i){ return S.headers[i]; }),
+           rows: filteredRows().map(function(r){ return vis.map(function(i){ return r[i]; }); }),
+           types: vis.map(function(i){ return colType(i); }) };
+}
+function ddmmyyyy(iso){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||'')); return m ? (m[3]+'-'+m[2]+'-'+m[1]) : ''; }
+function baseFileName(){
+  var f = $('from').value, to = $('to').value, range;
+  if (f && to) range = (f === to) ? ddmmyyyy(f) : (ddmmyyyy(f)+' ถึง '+ddmmyyyy(to));
+  else if (f)  range = 'ตั้งแต่ '+ddmmyyyy(f);
+  else if (to) range = 'ถึง '+ddmmyyyy(to);
+  else         range = 'ทั้งหมด';
+  var name = 'EDC '+bankLabel(S.bank)+' ขึ้นเงิน '+range;
+  if ($('unit').value) name += ' '+$('unit').value;
+  if (S.view === 'daily') name += ' (สรุปรายวัน)';
+  else if (S.view === 'branch') name += ' (สรุปรายสาขา)';
+  else if (S.view === 'unit') name += ' (สรุปรายหน่วยงาน)';
+  return name.replace(new RegExp('[\\\\/:*?"<>|]','g'),' ').replace(/\s+/g,' ').trim();
+}
+function fileName(ext){ return baseFileName()+'.'+ext; }
+function download(blob, name){
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href); a.remove();},2000);
+}
+function exportCsv(){
+  var d=exportDataset();
+  var lines=[d.headers].concat(d.rows).map(function(r){
+    return r.map(function(v){ var s=String(v==null?'':v); return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; }).join(',');
+  });
+  download(new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}), fileName('csv'));
+}
+function xlsxTabName(n){ n = String(n||'').replace(new RegExp('[\\[\\]*?/\\\\:]','g'),' ').replace(/\s+/g,' ').trim().slice(0,31); return n || 'data'; }
+function exportXlsx(){
+  var go=function(){
+    var d=exportDataset();
+    var ws=XLSX.utils.aoa_to_sheet([d.headers].concat(d.rows));
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, xlsxTabName(bankLabel(S.bank)));
+    XLSX.writeFile(wb, fileName('xlsx'));
+  };
+  if (window.XLSX){ go(); return; }
+  overlay(true,'กำลังโหลดตัวสร้างไฟล์ Excel…');
+  var s=document.createElement('script');
+  s.src='https:\/\/cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload=function(){ overlay(false); go(); };
+  s.onerror=function(){ overlay(false); toast('โหลดไลบรารี Excel ไม่สำเร็จ — ใช้ปุ่ม CSV แทนได้'); };
+  document.head.appendChild(s);
+}
+function doPrint(){
+  var d=exportDataset();
+  var meta=[
+    bankLabel(S.bank),
+    (S.view==='daily'?'สรุปรายวัน':(S.view==='branch'?'สรุปรายสาขา':(S.view==='unit'?'สรุปรายหน่วยงาน':'รายการขึ้นเงิน'))),
+    'ช่วง '+DateRange.label($('from').value, $('to').value, true),
+    $('unit').value?('หน่วยงาน: '+$('unit').value):'',
+    $('store').value?('สาขา: '+($('store').value==='__blank__'?'(ยังไม่มีรหัสสาขา)':$('store').value)):'',
+    $('q').value?('ค้นหา: "'+$('q').value+'"'):'',
+    'พิมพ์เมื่อ '+DateRange.fmt(ymd(new Date()), true)+' '+pad(new Date().getHours())+':'+pad(new Date().getMinutes())
+  ].filter(Boolean).join(' · ');
+  var numCols = d.headers.map(function(h,i){
+    if (d.types.length) return d.types[i]==='money' || d.types[i]==='num';
+    return i>0;   // มุมมองสรุป: คอลัมน์แรกเป็นชื่อกลุ่ม ที่เหลือตัวเลข
+  });
+  var html='<h2>'+esc(BOOTSTRAP.appName||'ระบบขึ้นเงินบัตรเครดิต EDC')+'</h2><div class="pm">'+esc(meta)+'</div>'+
+    '<table><thead><tr>'+d.headers.map(function(h,i){ return '<th class="'+(numCols[i]?'num':'')+'">'+esc(h)+'</th>'; }).join('')+'</tr></thead><tbody>'+
+    d.rows.map(function(r){ return '<tr>'+r.map(function(v,i){ return '<td class="'+(numCols[i]?'num':'')+'">'+fmt(v, d.types[i]||'')+'</td>'; }).join('')+'</tr>'; }).join('')+'</tbody></table>';
+  $('printArea').innerHTML=html;
+  var prevTitle = document.title;
+  document.title = baseFileName();
+  window.print();
+  setTimeout(function(){ document.title = prevTitle; }, 1500);
+}
+
+/* ---------- ช่วงวันที่ ---------- */
+var RANGE = null;
+function currentRange(){ return RANGE ? RANGE.get() : { from: $('from').value, to: $('to').value }; }
+function emptyMsg(){
+  if (!S.headers.length && (!BOOTSTRAP.configured || BOOTSTRAP.error)) return 'ยังไม่ได้ตั้งค่าชีต MASTER';
+  var r = currentRange();
+  if (!r.from && !r.to) return 'ไม่พบรายการตามเงื่อนไขที่เลือก';
+  return 'ไม่พบรายการในช่วง ' + esc(DateRange.label(r.from, r.to, true)) + '<br><button class="mini" id="btnAllRange" style="margin-top:10px">ดูทุกช่วงเวลา</button>';
+}
+function wireEmptyMsg(){
+  var ab = $('btnAllRange');
+  if (ab) ab.onclick = function(){ $('from').value=''; $('to').value=''; if (RANGE) RANGE.set('', ''); loadData(); };
+}
+function gotoMonthOf(iso){
+  var m = String(iso||'').match(/^(\d{4})-(\d{2})-\d{2}$/); if (!m) return;
+  var y = Number(m[1]), mo = Number(m[2]) - 1;
+  var last = new Date(y, mo+1, 0).getDate();
+  var f = y+'-'+pad(mo+1)+'-01', t = y+'-'+pad(mo+1)+'-'+pad(last);
+  $('from').value = f; $('to').value = t;
+  if (RANGE) RANGE.set(f, t);
+  loadData();
+}
+function initRangePicker(){
+  var d = DateRange.thisMonth();
+  $('from').value = d.from; $('to').value = d.to;
+  RANGE = DateRange.attach($('rangeBtn'), {
+    mode: 'filter', year: 'ce', from: d.from, to: d.to,
+    onApply: function (r){ $('from').value = r.from; $('to').value = r.to; loadData(); }
+  });
+}
+
+/* ---------- หน้าจอ ---------- */
+function showScreen(sc){
+  S.screen = sc;
+  $('sidebar').style.display = sc==='login' ? 'none' : '';
+  $('loginScreen').style.display = sc==='login' ? 'flex' : 'none';
+  $('dataScreen').style.display = sc==='data' ? 'block' : 'none';
+  $('settingsScreen').style.display = sc==='settings' ? 'block' : 'none';
+  renderNav();
+}
+
+/* ---------- ตั้งค่าระบบ (หน้าเต็ม · แท็บ · ปุ่มบันทึกแยกแท็บ) ---------- */
+function openSettings(){
+  overlay(true,'กำลังโหลดการตั้งค่า…');
+  google.script.run
+    .withSuccessHandler(function(cfg){ overlay(false); renderSettings(cfg); showScreen('settings'); })
+    .withFailureHandler(function(e){ overlay(false); toast(e && e.message ? e.message : e); })
+    .getSettings(S.pin);
+}
+var SET = { cfg:null, tab:'A', dirty:{A:false,C:false,P:false} };
+function setTab(t){
+  var cur = SET.tab;
+  if (cur !== t && SET.dirty[cur]){
+    if (!confirm('แท็บนี้ยังมีของที่แก้แล้วไม่ได้บันทึก ออกจากแท็บนี้ไหม? (การแก้ไขจะหายไป)')) return;
+    SET.dirty[cur] = false;
+  }
+  SET.tab = t;
+  ['A','C','P'].forEach(function(k){
+    $('tab'+k).classList.toggle('active', k===t);
+    $('tab'+k).classList.toggle('dirty', !!SET.dirty[k]);
+    $('pane'+k).classList.toggle('hidden', k!==t);
+  });
+}
+function markDirty(k){ SET.dirty[k] = true; $('tab'+k).classList.add('dirty'); }
+function clearDirty(k){ SET.dirty[k] = false; $('tab'+k).classList.remove('dirty'); }
+
+function renderSettings(cfg){
+  SET.cfg = cfg; SET.tab = 'A'; SET.dirty = {A:false,C:false,P:false};
+  var curIco = cfg.appIcon || '';
+  var A = '<div class="sec"><h3>ป้ายแอป</h3>'+
+    '<div class="hint">ไอคอน ชื่อ และคำอธิบายที่แสดงในแถบซ้ายและหน้าเข้าใช้งาน</div>'+
+    '<div class="icobox">'+
+      '<div class="icoprev" id="icoPrev">'+(curIco ? '<img src="'+esc(curIco)+'" alt="">' : '<svg aria-hidden="true"><use href="#i-credit-card"/></svg>')+'</div>'+
+      '<div><div style="font-size:12.5px;color:var(--mut);line-height:1.6">ไฟล์ PNG / JPEG / WebP<br>ระบบย่อให้เป็น 96×96 อัตโนมัติ ไม่ต้องเตรียมขนาดมาก่อน</div>'+
+        '<div style="margin-top:9px;display:flex;gap:8px;flex-wrap:wrap"><button class="mini" id="btnIcoPick">เลือกไฟล์ไอคอน</button>'+
+          '<button class="mini danger'+(curIco?'':' hidden')+'" id="btnIcoClear">ลบไอคอน</button></div>'+
+        '<div id="icoNote" style="font-size:12px;color:var(--mut);margin-top:7px"></div>'+
+        '<input type="file" id="icoFile" accept="image/png,image/jpeg,image/webp" style="display:none"></div>'+
+    '</div>'+
+    '<div class="frow"><label>ชื่อแอป</label><input class="sin wide" id="setAppName" value="'+esc(cfg.appName||'')+'"></div>'+
+    '<div class="frow"><label>คำอธิบาย</label><input class="sin wide" id="setAppDesc" value="'+esc(cfg.appDesc||'')+'" placeholder="เช่น Pattara Group · ฝ่ายบัญชี"></div>'+
+    '<div class="frow"><label>ลิงก์คู่มือ</label><input class="sin wide" id="setManual" value="'+esc(cfg.manualUrl||'')+'" placeholder="https:\/\/docs.google.com/document/d/…"></div>'+
+    '<div class="hint">เว้นว่างไว้ = ใช้หน้าคู่มือที่มีอยู่ในตัวแอป ใส่ลิงก์เฉพาะตอนอยากชี้ไปเอกสารอื่น</div>'+
+    '<div class="frow"><label>เวอร์ชัน</label><span class="rdonly">'+esc(cfg.appVersion||'')+'</span><span style="font-size:11.5px;color:var(--mut)">ระบบเติมให้อัตโนมัติ ไม่มีช่องให้กรอก</span></div>'+
+    '<div class="savebar"><button class="btn pri withico" id="btnSaveBrand">'+ICO('save')+'<span>บันทึกป้ายแอป</span></button></div></div>';
+
+  var ssChip = cfg.ssId
+    ? (cfg.ssName ? '<span class="tokchip">'+esc(cfg.ssName)+'</span>' : '<span class="tokchip none">เปิดชีตไม่ได้ ('+esc(cfg.ssId.slice(0,8))+'…)</span>')
+    : '<span class="tokchip none">ยังไม่ตั้งค่า</span>';
+  var C = '<div class="sec"><h3>'+ICO('table')+' ชีต MASTER (แหล่งข้อมูล)</h3>'+
+    '<div class="hint">ชีต "ETAX EDC — MASTER" ที่ระบบดาวน์โหลดใบกำกับภาษี EDC เขียนให้ทุกวัน · แอปนี้อ่านอย่างเดียว ไม่แก้ข้อมูลในชีต · บัญชีที่ deploy แอปต้องมีสิทธิ์อ่านชีตนี้</div>'+
+    '<div class="frow"><label>ชีตปัจจุบัน</label>'+ssChip+(cfg.ssUrl?' <a class="mini withico" style="text-decoration:none;color:inherit" href="'+esc(cfg.ssUrl)+'" target="_blank" rel="noopener">'+ICO('external')+'<span>เปิดชีต</span></a>':'')+'</div>'+
+    '<div class="frow"><label>ID หรือลิงก์ชีต</label><input class="sin wide" id="setSs" value="'+esc(cfg.ssId||'')+'" placeholder="https:\/\/docs.google.com/spreadsheets/d/…"></div>'+
+    '<div class="frow"><label>ลิงก์แอปตัวโหลด</label><input class="sin wide" id="setEtax" value="'+esc(cfg.etaxUrl||'')+'" placeholder="https:\/\/script.google.com/macros/s/…/exec"></div>'+
+    '<div class="hint">ลิงก์หน้าเว็บของระบบดาวน์โหลดใบกำกับ (ที่ใส่รหัสสาขา/กลุ่มของร้าน) — ใส่แล้วแถบเตือน "ยังไม่มีรหัสสาขา" จะมีปุ่มเปิดแอปนั้นให้</div>'+
+    '<div class="savebar"><button class="btn pri withico" id="btnSaveConn">'+ICO('save')+'<span>บันทึก</span></button>'+
+      '<button class="btn" id="btnTestSs">ทดสอบการเชื่อมต่อ</button></div>'+
+    '<div class="testout" id="testOutSs"></div></div>';
+  var so = cfg.sso || {};
+  C += '<div class="sec"><h3>เข้าจาก Apps Center (SSO)</h3>'+
+    '<div class="hint">ใส่รหัสแล้ว ผู้ดูแลที่กดเปิดแอปนี้ฝั่งผู้ดูแลจาก Pattara Apps Center เข้าได้เลยไม่ต้องใส่ PIN · คัดลอกจากพอร์ทัล › แก้ไขแอป › รหัส SSO · เว้นว่างแล้วบันทึก = ปิด SSO</div>'+
+    '<div class="frow"><label>รหัส SSO</label>'+(so.set ? '<span class="tokchip">ตั้งค่าแล้ว ('+esc(so.masked)+')</span>' : '<span class="tokchip none">ยังไม่ตั้งค่า</span>')+'</div>'+
+    '<div class="frow"><label>รหัสใหม่</label><input class="sin wide" id="setSso" type="password" autocomplete="off" placeholder="วางรหัส 64 ตัวจากพอร์ทัล"></div>'+
+    '<div class="savebar"><button class="btn pri withico" id="btnSaveSso">'+ICO('save')+'<span>บันทึกรหัส SSO</span></button></div></div>';
+
+  var P = '';
+  if (cfg.pinIsDefault) P += '<div class="notice"><b>'+ICO('alert-triangle')+'PIN ผู้ดูแลยังเป็นค่าเริ่มต้น</b><br>ใครก็เดาได้ กรุณาตั้ง PIN ใหม่ด้านล่าง</div>';
+  P += '<div class="sec"><h3>เปลี่ยน PIN ผู้ดูแล</h3>'+
+    '<div class="frow"><label>PIN ใหม่</label><input class="sin" id="setPin" type="password" inputmode="numeric" maxlength="6" placeholder="ตัวเลข 6 หลัก"></div>'+
+    '<div class="frow"><label>ยืนยัน PIN</label><input class="sin" id="setPin2" type="password" inputmode="numeric" maxlength="6" placeholder="พิมพ์ซ้ำอีกครั้ง"></div>'+
+    '<div class="hint">เก็บแบบเข้ารหัส เปิดดูย้อนหลังไม่ได้ — ถ้าลืม ให้ผู้ดูแลเปิด Apps Script ของแอปนี้แล้วเรียกใช้ฟังก์ชัน resetAdminPin() · เปลี่ยนแล้วไม่ต้องออกจากระบบ</div>'+
+    '<div class="savebar"><button class="btn pri withico" id="btnSavePin">'+ICO('save')+'<span>บันทึก PIN ใหม่</span></button></div></div>';
+
+  $('settingsScreen').innerHTML =
+    '<div class="setcard"><div class="settings-head"><b style="font-size:16px">ตั้งค่าระบบ</b>'+
+      '<button class="btn withico" id="btnSetBack">'+ICO('arrow-left')+'<span>กลับหน้าข้อมูล</span></button></div>'+
+      '<div class="mtabs"><button id="tabA" class="active">ป้ายแอป</button><button id="tabC">การเชื่อมต่อ</button><button id="tabP">เปลี่ยน PIN</button></div>'+
+      '<div id="paneA">'+A+'</div><div id="paneC" class="hidden">'+C+'</div><div id="paneP" class="hidden">'+P+'</div></div>';
+
+  $('btnSetBack').onclick = function(){
+    var d = SET.dirty;
+    if ((d.A||d.C||d.P) && !confirm('ยังมีของที่แก้แล้วไม่ได้บันทึก ออกจากหน้าตั้งค่าไหม?')) return;
+    showScreen('data');
+  };
+  ['A','C','P'].forEach(function(k){ $('tab'+k).onclick = function(){ setTab(k); }; });
+  ['setAppName','setAppDesc','setManual'].forEach(function(id){ $(id).oninput = function(){ markDirty('A'); }; });
+  ['setSs','setEtax'].forEach(function(id){ $(id).oninput = function(){ markDirty('C'); }; });
+  ['setPin','setPin2'].forEach(function(id){ $(id).oninput = function(){ markDirty('P'); }; });
+
+  SET.icon = { action:'', data: curIco };
+  $('btnIcoPick').onclick = function(){ $('icoFile').click(); };
+  $('icoFile').onchange = function(){
+    var f = this.files && this.files[0]; this.value = '';
+    if (!f) return;
+    if (!new RegExp('^image/(png|jpeg|webp)$').test(f.type)){ toast('รองรับเฉพาะ PNG / JPEG / WebP'); return; }
+    $('icoNote').textContent = 'กำลังย่อรูป…';
+    var rd = new FileReader();
+    rd.onerror = function(){ $('icoNote').textContent = 'อ่านไฟล์ไม่สำเร็จ'; };
+    rd.onload = function(){
+      var img = new Image();
+      img.onerror = function(){ $('icoNote').textContent = 'ไฟล์นี้ไม่ใช่รูปที่เปิดได้'; };
+      img.onload = function(){
+        var c = document.createElement('canvas'); c.width = 96; c.height = 96;
+        var g = c.getContext('2d');
+        var r = Math.min(96 / img.width, 96 / img.height);
+        var w = Math.round(img.width * r), h = Math.round(img.height * r);
+        g.drawImage(img, Math.round((96-w)/2), Math.round((96-h)/2), w, h);
+        var out = c.toDataURL('image/png');
+        if (out.length > 120000){ var q = 0.9; while (q >= 0.5){ out = c.toDataURL('image/jpeg', q); if (out.length <= 120000) break; q -= 0.1; } }
+        SET.icon = { action:'set', data: out };
+        $('icoPrev').innerHTML = '<img src="'+esc(out)+'" alt="">';
+        $('btnIcoClear').classList.remove('hidden');
+        $('icoNote').textContent = 'พร้อมบันทึก — ขนาดหลังย่อ ' + Math.round(out.length/1024) + ' KB';
+        markDirty('A');
+      };
+      img.src = rd.result;
+    };
+    rd.readAsDataURL(f);
+  };
+  $('btnIcoClear').onclick = function(){
+    SET.icon = { action:'clear', data:'' };
+    $('icoPrev').innerHTML = '<svg aria-hidden="true"><use href="#i-credit-card"/></svg>';
+    $('btnIcoClear').classList.add('hidden');
+    $('icoNote').textContent = 'จะลบไอคอนเมื่อกดบันทึก';
+    markDirty('A');
+  };
+  $('btnSaveBrand').onclick = saveBrand;
+  $('btnSaveConn').onclick = saveConn;
+  $('btnTestSs').onclick = testSs;
+  $('btnSaveSso').onclick = saveSso;
+  $('btnSavePin').onclick = savePin;
+}
+function busy(btn, on, textWhenBusy){
+  if (!btn) return;
+  btn.disabled = !!on;
+  var sp = btn.querySelector('span');
+  if (sp){
+    if (on){ sp.setAttribute('data-old', sp.textContent); sp.textContent = textWhenBusy || 'กำลังบันทึก…'; }
+    else if (sp.getAttribute('data-old')){ sp.textContent = sp.getAttribute('data-old'); }
+  }
+}
+function saveBrand(){
+  var b = $('btnSaveBrand'); busy(b, true);
+  google.script.run
+    .withSuccessHandler(function(){
+      busy(b, false); clearDirty('A'); toast('บันทึกป้ายแอปแล้ว', true);
+      BOOTSTRAP.manualUrl = $('setManual').value.trim();
+      BOOTSTRAP.appName = $('setAppName').value.trim();
+      if (SET.icon && SET.icon.action === 'set')   BOOTSTRAP.appIcon = SET.icon.data;
+      if (SET.icon && SET.icon.action === 'clear') BOOTSTRAP.appIcon = '';
+      SET.icon = { action:'', data: BOOTSTRAP.appIcon || '' };
+      applyBrand(); renderNav(); fitAppName();
+    })
+    .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveSettings(S.pin, { section:'brand', appName: $('setAppName').value, appDesc: $('setAppDesc').value, manualUrl: $('setManual').value,
+      iconAction: (SET.icon && SET.icon.action) || '', appIcon: (SET.icon && SET.icon.data) || '' });
+}
+function saveConn(){
+  var b = $('btnSaveConn'); busy(b, true);
+  google.script.run
+    .withSuccessHandler(function(){
+      busy(b, false); clearDirty('C'); toast('บันทึกการเชื่อมต่อแล้ว — ชิปธนาคารจะอัปเดตเมื่อเปิดหน้าใหม่', true);
+      BOOTSTRAP.configured = true; BOOTSTRAP.error = ''; BOOTSTRAP.etaxUrl = $('setEtax').value.trim();
+      openSettings();
+    })
+    .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveSettings(S.pin, { section:'conn', ssId: $('setSs').value, etaxUrl: $('setEtax').value });
+}
+function testSs(){
+  var b = $('btnTestSs'), out = $('testOutSs');
+  b.disabled = true; out.className = 'testout'; out.textContent = 'กำลังทดสอบ…';
+  google.script.run
+    .withSuccessHandler(function(r){ b.disabled = false; out.className = 'testout ' + (r.ok ? 'ok' : 'bad'); out.textContent = (r.ok ? 'ผ่าน — ' : 'ไม่ผ่าน — ') + r.message; })
+    .withFailureHandler(function(e){ b.disabled = false; out.className='testout bad'; out.textContent = 'ไม่ผ่าน — ' + (e && e.message ? e.message : e); })
+    .testMaster(S.pin);
+}
+function saveSso(){
+  var b = $('btnSaveSso'); busy(b, true);
+  google.script.run
+    .withSuccessHandler(function(r){ busy(b, false); toast(r.message, true); openSettings(); })
+    .withFailureHandler(function(e){ busy(b, false); toast('บันทึกไม่สำเร็จ: '+(e&&e.message?e.message:e)); })
+    .saveSettings(S.pin, { section:'sso', key: $('setSso').value });
+}
+function savePin(){
+  var b = $('btnSavePin'), np = $('setPin').value.trim(), cf = $('setPin2').value.trim();
+  busy(b, true);
+  google.script.run
+    .withSuccessHandler(function(){
+      busy(b, false); clearDirty('P'); S.pin = np; $('setPin').value=''; $('setPin2').value='';
+      toast('เปลี่ยน PIN เรียบร้อย ใช้ต่อได้เลยไม่ต้องออกจากระบบ', true); openSettings();
+    })
+    .withFailureHandler(function(e){ busy(b, false); toast(e && e.message ? e.message : e); })
+    .saveSettings(S.pin, { section:'pin', newPin: np, confirmPin: cf });
+}
+
+/* ---------- กล่อง QR ทางเข้าแอป (ข้อ 9 มาตรฐานกลุ่ม) — URL เปล่าของแอป ห้ามต่อ token ---------- */
+function shareUrl(){ return String(BOOTSTRAP.appUrl || '').replace(new RegExp('/a/macros/[^/]+/'), '/macros/'); }
+function openShare(){
+  var url = shareUrl();
+  $('shareName').textContent = BOOTSTRAP.appName || 'ระบบขึ้นเงินบัตรเครดิต EDC';
+  $('shareTile').innerHTML = BOOTSTRAP.appIcon ? '<img src="'+esc(BOOTSTRAP.appIcon)+'" alt="">' : '<svg aria-hidden="true"><use href="#i-credit-card"/></svg>';
+  $('shareBox').classList.add('open');
+  var host = $('qrHost'); host.innerHTML = '';
+  if (!url){ host.innerHTML = '<div style="font-size:12.5px;color:var(--mut)">ยังไม่มีลิงก์แอป (ต้อง deploy เป็น Web app ก่อน)</div>'; return; }
+  var draw = function(){
+    try { host.innerHTML=''; new QRCode(host, { text:url, width:200, height:200, correctLevel: QRCode.CorrectLevel.M }); }
+    catch(e){ host.innerHTML = '<div style="font-size:12.5px;color:var(--red)">สร้าง QR ไม่สำเร็จ — กดคัดลอกลิงก์แทน</div>'; }
+  };
+  if (window.QRCode){ draw(); return; }
+  host.innerHTML = '<div style="font-size:12.5px;color:var(--mut)">กำลังสร้าง QR…</div>';
+  var sc = document.createElement('script');
+  sc.src = 'https:\/\/cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+  sc.onload = draw;
+  sc.onerror = function(){ host.innerHTML = '<div style="font-size:12.5px;color:var(--red)">โหลดตัวสร้าง QR ไม่สำเร็จ — กดคัดลอกลิงก์แทน</div>'; };
+  document.head.appendChild(sc);
+}
+function closeShare(){ $('shareBox').classList.remove('open'); }
+function qrCopy(){
+  var url = shareUrl(); if (!url){ toast('ยังไม่มีลิงก์แอป'); return; }
+  var done = function(){ toast('คัดลอกลิงก์แล้ว', true); };
+  var fallback = function(){
+    try {
+      var ta = document.createElement('textarea'); ta.value = url; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); var ok = document.execCommand('copy'); ta.remove();
+      if (ok) done(); else toast('คัดลอกอัตโนมัติไม่ได้ — ลิงก์: '+url);
+    } catch(e){ toast('คัดลอกอัตโนมัติไม่ได้ — ลิงก์: '+url); }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, fallback);
+  else fallback();
+}
+function qrDownload(){
+  var src = $('qrHost').querySelector('canvas') || $('qrHost').querySelector('img');
+  if (!src){ toast('ยังไม่มี QR ให้ดาวน์โหลด'); return; }
+  var name = BOOTSTRAP.appName || 'ระบบขึ้นเงินบัตรเครดิต EDC';
+  var W = 480, H = 600, c = document.createElement('canvas'); c.width = W; c.height = H;
+  var g = c.getContext('2d');
+  g.fillStyle = '#fff'; g.fillRect(0,0,W,H);
+  var finish = function(iconImg, note){
+    var y = 36;
+    if (iconImg){ g.save(); g.beginPath(); g.roundRect ? g.roundRect((W-96)/2, y, 96, 96, 20) : g.rect((W-96)/2, y, 96, 96); g.clip(); g.drawImage(iconImg, (W-96)/2, y, 96, 96); g.restore(); y += 116; }
+    g.fillStyle = '#20313B'; g.font = '600 26px Sarabun, sans-serif'; g.textAlign = 'center';
+    g.fillText(name, W/2, y + 20); y += 48;
+    try { g.drawImage(src, (W-300)/2, y, 300, 300); } catch(e){ toast('บันทึกรูปไม่ได้: '+e.message); return; }
+    y += 322;
+    g.fillStyle = '#64758A'; g.font = '500 18px Sarabun, sans-serif'; g.fillText('สแกน QR code เพื่อเข้าใช้งาน', W/2, y + 16);
+    if (note){ g.font = '400 13px Sarabun, sans-serif'; g.fillText(note, W/2, y + 40); }
+    try { c.toBlob(function(b){ download(b, name.replace(new RegExp('[\\\\/:*?"<>|]','g'),' ')+' QR.png'); }); }
+    catch(e){ toast('บันทึกรูปไม่ได้: '+e.message); }
+  };
+  if (BOOTSTRAP.appIcon){
+    var im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = function(){ finish(im, ''); };
+    im.onerror = function(){ finish(null, 'ใส่ไอคอนไม่ได้ จึงสร้างรูปโดยไม่มีไอคอน'); };
+    im.src = BOOTSTRAP.appIcon;
+  } else finish(null, '');
+}
+
+/* ---------- init / login ---------- */
+function init(){
+  $('btnLoad').onclick=loadData;
+  initRangePicker();
+  $('btnLogout').onclick=logout;
+  $('q').oninput=function(){ S.page=1; renderAll(); };
+  $('unit').onchange=function(){ S.page=1; renderAll(); };
+  $('store').onchange=function(){ S.page=1; renderAll(); };
+  $('chkTech').onchange=function(){ S.tech = this.checked; S.page=1; renderTable(); };
+  $('segRows').onclick=function(){ setView('rows'); };
+  $('segDaily').onclick=function(){ setView('daily'); };
+  $('segBranch').onclick=function(){ setView('branch'); };
+  $('segUnit').onclick=function(){ setView('unit'); };
+  $('btnCsv').onclick=exportCsv;
+  $('btnXlsx').onclick=exportXlsx;
+  $('btnPrint').onclick=doPrint;
+
+  $('btnEnterUser').onclick = function(){ enterApp('user'); };
+  $('btnEnterAdmin').onclick = adminLogin;
+  /* ห้าม auto-login ตอนครบ 6 หลัก (มาตรฐานกลุ่ม 11/09/2569) — ส่งตรวจเฉพาะ Enter หรือปุ่มกุญแจ */
+  $('pin').addEventListener('input', function(){ this.value = this.value.replace(/\D/g,'').slice(0,6); $('pinErr').textContent = ''; });
+  $('pin').addEventListener('keydown', function(e){ if (e.key === 'Enter') adminLogin(); });
+
+  $('btnLoginShare').onclick = openShare;
+  $('shareClose').onclick = closeShare;
+  $('shareBox').addEventListener('click', function(e){ if (e.target === $('shareBox')) closeShare(); });
+  $('qrDownload').onclick = qrDownload;
+  $('qrCopy').onclick = qrCopy;
+
+  initSidebar(); initUserMenu(); applyBrand(); renderNav();
+  showScreen('login');
+  ssoEnter();
+  fitAppName();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitAppName);
+  var w_; window.addEventListener('resize', function(){ clearTimeout(w_); w_ = setTimeout(fitAppName, 120); });
+}
+/* เปิดจาก Apps Center พร้อม ?sso=<ตั๋ว> → เข้าแบบผู้ดูแลเลย (บัตรผ่านใช้แทน PIN) · ตั๋วใช้ไม่ได้ = บอกที่การ์ด PIN */
+function ssoEnter(){
+  try {
+    google.script.url.getLocation(function(loc){
+      var t = loc && loc.parameter && loc.parameter.sso;
+      if (!t) return;
+      overlay(true,'กำลังเข้าสู่ระบบจาก Apps Center…');
+      google.script.run
+        .withSuccessHandler(function(r){
+          overlay(false);
+          if (r && r.ok){ if (S.role) return; S.pin = r.pin; enterApp('admin'); }
+          else if (!S.role && r && r.message) $('pinErr').textContent = r.message;
+        })
+        .withFailureHandler(function(){ overlay(false); })
+        .ssoLogin(t);
+    });
+  } catch (e) {}
+}
+function pinFail(msg){
+  var card = $('loginCard'), inp = $('pin');
+  $('pinErr').textContent = msg;
+  card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake');
+  inp.disabled = false; inp.value = ''; inp.focus();
+}
+function adminLogin(){
+  var inp = $('pin'), pin = inp.value.trim();
+  if (!/^\d{6}$/.test(pin)){ pinFail('PIN ต้องเป็นตัวเลข 6 หลัก'); return; }
+  $('pinErr').textContent = '';
+  inp.disabled = true;
+  overlay(true,'กำลังตรวจสอบ PIN…');
+  google.script.run
+    .withSuccessHandler(function(){ overlay(false); S.pin = pin; inp.disabled = false; inp.value=''; enterApp('admin'); })
+    .withFailureHandler(function(e){ overlay(false); pinFail(e && e.message ? e.message : String(e)); })
+    .verifyPin(pin);
+}
+function logout(){
+  S.role=null; S.pin=''; S.headers=[]; S.keys=[]; S.rows=[]; S.latest=null; S.runs=[]; S.bank='ALL';
+  S.sortIdx=-1; S.page=1; S.view='rows'; S.tech=false; HEALTH=null;
+  $('q').value=''; $('chkTech').checked=false;
+  $('unit').innerHTML='<option value="">ทุกหน่วยงาน</option>'; $('store').innerHTML='<option value="">ทุกสาขา</option>';
+  var d0 = DateRange.thisMonth();
+  $('from').value=d0.from; $('to').value=d0.to; if (RANGE) RANGE.set(d0.from, d0.to);
+  setNotice(''); $('healthBar').innerHTML=''; $('cards').innerHTML=''; $('latestInfo').textContent=''; $('runs').innerHTML='';
+  $('tbl').innerHTML=''; $('pager').innerHTML='';
+  $('segRows').className='on'; $('segDaily').className=''; $('segBranch').className=''; $('segUnit').className='';
+  $('pin').value=''; $('pinErr').textContent='';
+  showScreen('login');
+}
+function enterApp(role){
+  S.role = role;   /* แถบผู้ใช้บอก "สิทธิ์" ไม่ใช่ "ตัวตน" — ห้ามโชว์อีเมล (dual-access-login) */
+  showScreen('data');
+  selectBank('ALL');
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
