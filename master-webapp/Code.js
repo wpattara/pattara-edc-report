@@ -14,7 +14,8 @@
  * ---------------------------------------------------------
  */
 
-var APP_VERSION = '2.0.0';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+var APP_VERSION = '2.0.1';       // X.Y.Z — X โครงสร้าง · Y ฟีเจอร์/requirement ใหม่ · Z แก้ย่อย
+                                 // 2.0.1 = แท็บธนาคารต้องมี date_iso (MERCHANT_MAP เคยถูกนับเป็นธนาคาร)
                                  // ขยับเลขที่นี่เท่านั้น วันที่ระบบ stamp ให้เองตอนเห็นเลขใหม่ครั้งแรก
 var TZ = 'Asia/Bangkok';
 var MAX_ROWS = 20000;            // เพดานแถวต่อการดึง 1 ครั้ง กันหน้าเว็บอืด
@@ -240,14 +241,15 @@ function masterSs_() {
   catch (e) { throw new Error('เปิดชีต MASTER ไม่ได้ (' + id.slice(0, 8) + '…) — ตรวจ ID และสิทธิ์ของบัญชีที่ deploy'); }
 }
 
-/** แท็บธนาคาร = ทุกแท็บที่ช่อง A1 เป็นหัว "bank" (เรียงตามลำดับแท็บในชีต) — ไม่ fix รายชื่อธนาคารในโค้ด */
+/** แท็บธนาคาร = แท็บที่หัวแถว 1 มีทั้ง bank · date_iso · invoice_no (เรียงตามลำดับแท็บในชีต) — ไม่ fix รายชื่อธนาคารในโค้ด
+ *  (MERCHANT_MAP ก็ขึ้นต้นด้วย bank เหมือนกัน จึงเช็คแค่ A1 ไม่ได้ — เจอจริง 20/10/2569) */
 function bankTabs_(ss) {
   var out = [];
   ss.getSheets().forEach(function (sh) {
     if (sh.getName() === LOG_SHEET) return;
-    if (sh.getLastRow() < 1 || sh.getLastColumn() < 1) return;
-    var a1 = String(sh.getRange(1, 1).getDisplayValue() || '').trim().toLowerCase();
-    if (a1 === 'bank') out.push(sh.getName());
+    if (sh.getLastRow() < 1 || sh.getLastColumn() < 3) return;
+    var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getDisplayValues()[0].map(function (h) { return String(h || '').trim().toLowerCase(); });
+    if (head[0] === 'bank' && head.indexOf('date_iso') >= 0 && head.indexOf('invoice_no') >= 0) out.push(sh.getName());
   });
   return out;
 }

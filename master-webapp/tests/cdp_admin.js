@@ -27,26 +27,35 @@ function getJson(p) { return new Promise((res, rej) => http.get('http://127.0.0.
     const ws = new WebSocket(ver.webSocketDebuggerUrl);
     await new Promise((res, rej) => { ws.onopen = res; ws.onerror = rej; });
     let id = 0; const pending = {};
-    ws.onmessage = ev => { const m = JSON.parse(ev.data); if (m.id && pending[m.id]) { pending[m.id](m); delete pending[m.id]; } };
+    const contexts = [];   // {sessionId, contextId} ของทุก frame (iframe ในโปรเซสเดียวกันไม่เป็น target แยก ต้องไล่ execution context)
+    ws.onmessage = ev => {
+      const m = JSON.parse(ev.data);
+      if (m.id && pending[m.id]) { pending[m.id](m); delete pending[m.id]; return; }
+      if (m.method === 'Runtime.executionContextCreated') contexts.push({ sessionId: m.sessionId || null, contextId: m.params.context.id, origin: m.params.context.origin });
+    };
     const send = (method, params, sessionId) => new Promise(res => { const n = ++id; pending[n] = res; ws.send(JSON.stringify(Object.assign({ id: n, method, params: params || {} }, sessionId ? { sessionId } : {}))); });
 
-    // หา iframe ของ Apps Script (userCodeAppPanel) — google.script.run อยู่ในนั้น
-    let sess = null;
-    for (let i = 0; i < 60 && !sess; i++) {
-      const t = await send('Target.getTargets');
-      const fr = (t.result.targetInfos || []).find(x => x.type === 'iframe' && /userCodeAppPanel/.test(x.url));
-      if (fr) { const a = await send('Target.attachToTarget', { targetId: fr.targetId, flatten: true }); sess = a.result.sessionId; }
-      else await sleep(500);
-    }
-    if (!sess) throw new Error('ไม่พบ iframe userCodeAppPanel ใน 30 วิ');
-    await send('Runtime.enable', {}, sess);
-    const run = async (expr) => {
-      const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true, timeout: 120000 }, sess);
+    // Apps Script ซ้อน iframe หลายชั้น (userCodeAppPanel → sandboxFrame → userHtmlFrame) — ไล่ทุก target หาชั้นที่มี google.script.run
+    const attached = {};
+    const evalIn = async (c, expr) => {
+      const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true, timeout: 120000, contextId: c.contextId }, c.sessionId);
       if (r.result.exceptionDetails) throw new Error(JSON.stringify(r.result.exceptionDetails.exception || r.result.exceptionDetails));
       return r.result.result.value;
     };
-    // รอให้หน้า init เสร็จ (มี google.script.run)
-    for (let i = 0; i < 40; i++) { const ok = await run('typeof google!=="undefined" && !!(google.script && google.script.run)'); if (ok) break; await sleep(500); }
+    let ctx = null;
+    for (let i = 0; i < 80 && !ctx; i++) {
+      const t = await send('Target.getTargets');
+      for (const x of (t.result.targetInfos || [])) {
+        if (x.type !== 'iframe' && x.type !== 'page') continue;
+        if (!attached[x.targetId]) { try { const a = await send('Target.attachToTarget', { targetId: x.targetId, flatten: true }); attached[x.targetId] = a.result.sessionId; await send('Runtime.enable', {}, attached[x.targetId]); } catch (e) { continue; } }
+      }
+      for (const c of contexts.slice()) {
+        try { if (await evalIn(c, 'typeof google!=="undefined" && !!(google.script && google.script.run) && typeof enterApp==="function"')) { ctx = c; break; } } catch (e) { /* context หายไปแล้ว */ }
+      }
+      if (!ctx) await sleep(500);
+    }
+    if (!ctx) { console.error('contexts ที่เห็น:', contexts.map(c => c.origin).join(' | ')); throw new Error('ไม่พบ frame ที่มี google.script.run ใน 40 วิ'); }
+    const run = (expr) => evalIn(ctx, expr);
     const call = (fn, args) => run('new Promise(function(res,rej){ google.script.run.withSuccessHandler(function(v){res(JSON.stringify(v));}).withFailureHandler(function(e){rej(new Error(e&&e.message||String(e)));}).' + fn + '.apply(null,' + JSON.stringify(args) + '); }).then(function(s){return s;})');
     let out;
     if (cmd === 'settings') out = JSON.parse(await call('getSettings', [pin]));
